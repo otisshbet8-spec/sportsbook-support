@@ -94,6 +94,15 @@
               </div>
 
               <div class="market-fields" data-market="handicap footballHandicap cornerHandicap cardHandicap basketballSpread tennisHandicap">
+                <label class="scope-field" data-scope-market="footballHandicap">
+                  <span>Phạm vi cược</span>
+                  <select id="handicapPeriod">
+                    <option value="Hiệp 1">Hiệp 1</option>
+                    <option value="Hiệp 2">Hiệp 2</option>
+                    <option value="Toàn trận" selected>Toàn trận</option>
+                    <option value="Thêm giờ">Thêm giờ</option>
+                  </select>
+                </label>
                 <div class="team-grid">
                   <label>
                     <span>Khách đặt đội</span>
@@ -118,6 +127,15 @@
 
               <div class="market-fields hidden" data-market="total footballTotal cornerTotal cardTotal basketballTotal tennisTotal">
                 <div class="team-grid">
+                  <label class="scope-field" data-scope-market="footballTotal">
+                    <span>Phạm vi cược</span>
+                    <select id="totalPeriod">
+                      <option value="Hiệp 1">Hiệp 1</option>
+                      <option value="Hiệp 2">Hiệp 2</option>
+                      <option value="Toàn trận" selected>Toàn trận</option>
+                      <option value="Thêm giờ">Thêm giờ</option>
+                    </select>
+                  </label>
                   <label>
                     <span>Khách đặt</span>
                     <select id="totalPick">

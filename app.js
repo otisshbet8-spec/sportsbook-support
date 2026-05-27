@@ -263,8 +263,10 @@ const awayTeamInput = document.querySelector("#awayTeam");
 const selectedTeamSelect = document.querySelector("#selectedTeam");
 const handicapDirectionSelect = document.querySelector("#handicapDirection");
 const handicapLineInput = document.querySelector("#handicapLine");
+const handicapPeriodSelect = document.querySelector("#handicapPeriod");
 const totalPickSelect = document.querySelector("#totalPick");
 const totalLineInput = document.querySelector("#totalLine");
+const totalPeriodSelect = document.querySelector("#totalPeriod");
 const homeYellowCardsInput = document.querySelector("#homeYellowCards");
 const homeDirectRedCardsInput = document.querySelector("#homeDirectRedCards");
 const homeSecondYellowRedInput = document.querySelector("#homeSecondYellowRed");
@@ -546,14 +548,15 @@ function calculateHandicap({ homeTeam, awayTeam, homeScore, awayScore, startHome
   const points = settleParts(parts, amounts, stake);
   const selectedName = getSelectedTeamName(homeTeam, awayTeam);
   const directionText = signedLine < 0 ? "chấp" : "được chấp";
+  const periodText = betType.value === "footballHandicap" ? ` - ${handicapPeriodSelect.value}` : "";
   const partText = parts.map((part) => `${part.line > 0 ? "+" : ""}${numberFormatter.format(part.line)}: ${part.outcome}`).join(", ");
   const liveText = timing === "live" ? ` Tỷ số lúc đặt ${startHomeScore}-${startAwayScore}, phần tính cược sau lúc đặt là ${effective.home}-${effective.away}.` : "";
 
   return {
     ...summary,
     points,
-    pickText: `${selectedName} ${directionText} ${numberFormatter.format(rawLine)}`,
-    note: `${selectedName} ${directionText} ${numberFormatter.format(rawLine)} ${betType.unit}, kết quả cuối ${homeTeam} ${homeScore}-${awayScore} ${awayTeam}.${liveText} Kết quả từng phần: ${partText}.`,
+    pickText: `${selectedName} ${directionText} ${numberFormatter.format(rawLine)}${periodText}`,
+    note: `${selectedName} ${directionText} ${numberFormatter.format(rawLine)} ${betType.unit}${periodText}, kết quả trận đấu ${homeTeam} ${homeScore}-${awayScore} ${awayTeam}.${liveText} Kết quả từng phần: ${partText}.`,
     steps: [
       timing === "live" ? `Lấy phần phát sinh sau lúc đặt: ${homeScore}-${awayScore} trừ ${startHomeScore}-${startAwayScore} = ${effective.home}-${effective.away}.` : `Kết quả dùng để tính: ${homeScore}-${awayScore}.`,
       `Áp kèo ${selectedName} ${directionText} ${numberFormatter.format(rawLine)}${parts.length === 2 ? `, chia thành ${partText}` : ""}.`,
@@ -573,7 +576,8 @@ function calculateTotal({ homeTeam, awayTeam, homeScore, awayScore, amounts, sta
   }));
   const summary = summarizeParts(lines);
   const points = settleParts(lines, amounts, stake);
-  const pickText = `${pick === "over" ? "Tài/Trên" : "Xỉu/Dưới"} ${numberFormatter.format(line)}`;
+  const periodText = betType.value === "footballTotal" ? ` - ${totalPeriodSelect.value}` : "";
+  const pickText = `${pick === "over" ? "Tài/Trên" : "Xỉu/Dưới"} ${numberFormatter.format(line)}${periodText}`;
 
   return {
     ...summary,
@@ -904,6 +908,9 @@ function updateMarketFields() {
     const markets = field.dataset.market.split(" ");
     field.classList.toggle("hidden", !markets.includes(betType.value) && !markets.includes(betType.family));
   });
+  document.querySelectorAll(".scope-field").forEach((field) => {
+    field.classList.toggle("hidden", field.dataset.scopeMarket !== betType.value);
+  });
 
   timingFields.classList.toggle("hidden", !allowLive);
   liveStartFields.classList.toggle("hidden", !allowLive || timing !== "live");
@@ -980,8 +987,8 @@ function buildCustomerScript({ ticketName, betType, settlement, stake, odds, tim
     `Dạ vé cược anh cung cấp: ${ticketName}.`,
     `Loại cược: ${betType.label}. Anh đặt ${settlement.pickText} với số điểm ${formatPoints(stake)}, tỉ lệ cược ${numberFormatter.format(odds)}.`,
     timing === "live"
-      ? `Kết quả kết toán: lúc đặt ${homeTeam} ${startHomeScore}-${startAwayScore} ${awayTeam}, cuối ${homeTeam} ${homeScore}-${awayScore} ${awayTeam}.`
-      : `Kết quả kết toán: ${homeTeam} ${homeScore}-${awayScore} ${awayTeam}.`,
+      ? `Lúc đặt: ${homeTeam} ${startHomeScore}-${startAwayScore} ${awayTeam}; kết quả trận đấu: ${homeTeam} ${homeScore}-${awayScore} ${awayTeam}.`
+      : `Kết quả trận đấu: ${homeTeam} ${homeScore}-${awayScore} ${awayTeam}.`,
     `Vé ${settlement.text}: ${formatPoints(settlement.points)}.`,
     "Vé cược kết toán chính xác ạ.",
   ].join("\n");
