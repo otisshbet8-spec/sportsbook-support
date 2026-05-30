@@ -98,7 +98,7 @@ textarea,
 .search-wrap,
 .result-card,
 .script-box {
-  background: rgba(140, 50, 0, 0.5);
+  background: var(--surface);
   box-shadow:
     0 22px 70px var(--shadow-dark),
     inset 0 1px 0 var(--shadow-light);
