@@ -1,7 +1,7 @@
 :root {
   color-scheme: dark;
   --bg: #080d14;
-  --surface: #111925;
+  --surface: #2b1200;
   --surface-strong: #172232;
   --surface-soft: #0d141e;
   --text: #edf5ff;
@@ -156,7 +156,7 @@ textarea,
   color: var(--text);
   background: linear-gradient(135deg, rgba(255, 120, 0, 0.35), rgba(255, 80, 0, 0.2));
   box-shadow:
-    inset 0 0 0 1px rgba(255, 120, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 120, 0, 0.45);
     0 10px 32px rgba(0, 0, 0, 0.24);
 }
 
