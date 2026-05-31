@@ -872,3 +872,21 @@ textarea:focus {
   }
 }
 
+.input-comet-wrap {
+  position: relative;
+  border-radius: 8px;
+  width: 100%;
+}
+.input-comet-wrap canvas {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  pointer-events: none;
+  z-index: 10;
+  border-radius: 8px;
+}
+.input-comet-wrap input,
+.input-comet-wrap select {
+  position: relative;
+  z-index: 1;
+}
