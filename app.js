@@ -1241,7 +1241,20 @@ init();
       prog+=SPEED;
       animId=requestAnimationFrame(draw);
     }
-
+// Hỗ trợ click cho nav-item (không có focus)
+if(el.classList.contains('nav-item')){
+  el.addEventListener('mouseenter',()=>{
+    active=true;
+    cancelAnimationFrame(animId);
+    animId=requestAnimationFrame(draw);
+  });
+  el.addEventListener('mouseleave',()=>{
+    active=false;
+    cancelAnimationFrame(animId);
+    ctx.clearRect(0,0,cv.width,cv.height);
+  });
+  return;
+}
     // Bật khi focus
     el.addEventListener('focus',()=>{
       active=true;
@@ -1262,7 +1275,7 @@ init();
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
-    document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
+    document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select,.nav-item,.search-wrap input')
       .forEach(el=>initComet(el));
   });
 })();
