@@ -3,7 +3,7 @@
   --bg: #060300;
   --surface: #1a0900;
   --surface-strong: #172232;
-  --surface-soft: #0d141e;
+  --surface-soft: rgba(20,8,0,0.92);
   --text: #edf5ff;
   --muted: #d4956a;
   --line: rgba(144, 164, 185, 0.2);
