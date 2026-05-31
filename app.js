@@ -1138,3 +1138,111 @@ tabButtons.forEach((button) => {
 });
 
 init();
+
+(function() {
+  const OFFSET = 3;
+  const BORDER_RADIUS = 8;
+  const DOT_COLOR = '#ff8c00';
+  const TAIL_LEN = 70;
+  const SPEED = 1;
+
+  function perim(w, h, r) {
+    return 2*(w-2*r)+2*(h-2*r)+2*Math.PI*r;
+  }
+
+  function ptOnPath(t, w, h, r) {
+    const P = perim(w,h,r);
+    let p = ((t%P)+P)%P;
+    if(p<w-2*r) return{x:r+p,y:0};
+    p-=w-2*r;
+    if(p<Math.PI/2*r){const a=-Math.PI/2+p/r;return{x:w-r+Math.cos(a)*r,y:r+Math.sin(a)*r};}
+    p-=Math.PI/2*r;
+    if(p<h-2*r) return{x:w,y:r+p};
+    p-=h-2*r;
+    if(p<Math.PI/2*r){const a=p/r;return{x:w-r+Math.cos(a)*r,y:h-r+Math.sin(a)*r};}
+    p-=Math.PI/2*r;
+    if(p<w-2*r) return{x:w-r-p,y:h};
+    p-=w-2*r;
+    if(p<Math.PI/2*r){const a=Math.PI/2+p/r;return{x:r+Math.cos(a)*r,y:h-r+Math.sin(a)*r};}
+    p-=Math.PI/2*r;
+    if(p<h-2*r) return{x:0,y:h-r-p};
+    p-=h-2*r;
+    const a=Math.PI+p/r;return{x:r+Math.cos(a)*r,y:r+Math.sin(a)*r};
+  }
+
+  function initComet(el) {
+    const wrap = document.createElement('div');
+    wrap.className = 'input-comet-wrap';
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+
+    const cv = document.createElement('canvas');
+    wrap.appendChild(cv);
+    const ctx = cv.getContext('2d');
+    let prog = 0;
+
+    function resize() {
+      cv.width  = wrap.offsetWidth  + OFFSET*2;
+      cv.height = wrap.offsetHeight + OFFSET*2;
+    }
+
+    function draw() {
+      const W=cv.width, H=cv.height;
+      const iW=W-OFFSET*2, iH=H-OFFSET*2;
+      const P=perim(iW,iH,BORDER_RADIUS);
+      ctx.clearRect(0,0,W,H);
+
+      ctx.strokeStyle='rgba(255,100,0,0.15)';
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.roundRect(OFFSET,OFFSET,iW,iH,BORDER_RADIUS);
+      ctx.stroke();
+
+      [0,P/2].forEach(offset=>{
+        const steps=80;
+        for(let i=steps;i>=0;i--){
+          const t=prog+offset-i*(TAIL_LEN/steps);
+          const pt=ptOnPath(t,iW,iH,BORDER_RADIUS);
+          const alpha=Math.pow(1-i/steps,2.5)*0.9;
+          const sz=(1-i/steps)*2.5;
+          ctx.fillStyle=`rgba(255,140,0,${alpha})`;
+          ctx.beginPath();
+          ctx.arc(pt.x+OFFSET,pt.y+OFFSET,sz,0,Math.PI*2);
+          ctx.fill();
+        }
+
+        const head=ptOnPath(prog+offset,iW,iH,BORDER_RADIUS);
+        const hx=head.x+OFFSET, hy=head.y+OFFSET;
+        const grd=ctx.createRadialGradient(hx,hy,0,hx,hy,7);
+        grd.addColorStop(0,'rgba(255,255,255,1)');
+        grd.addColorStop(0.3,DOT_COLOR);
+        grd.addColorStop(0.7,DOT_COLOR+'88');
+        grd.addColorStop(1,'transparent');
+        ctx.fillStyle=grd;
+        ctx.beginPath();
+        ctx.arc(hx,hy,7,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle='#fff';
+        ctx.shadowColor=DOT_COLOR;
+        ctx.shadowBlur=14;
+        ctx.beginPath();
+        ctx.arc(hx,hy,2,0,Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur=0;
+      });
+
+      prog+=SPEED;
+      requestAnimationFrame(draw);
+    }
+
+    resize();
+    draw();
+    window.addEventListener('resize', resize);
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.querySelectorAll('input:not([type=radio]):not([type=checkbox]), select')
+      .forEach(el => initComet(el));
+  });
+})();
