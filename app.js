@@ -1275,7 +1275,7 @@ if(el.classList.contains('nav-item')){
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
-    document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select,.nav-item,.search-wrap input')
+    document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
       .forEach(el=>initComet(el));
   });
 })();
