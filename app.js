@@ -556,7 +556,7 @@ function calculateHandicap({ homeTeam, awayTeam, homeScore, awayScore, startHome
     ...summary,
     points,
     pickText: `${selectedName} ${directionText} ${numberFormatter.format(rawLine)}${periodText}`,
-    note: `${selectedName} ${directionText} ${numberFormatter.format(rawLine)} ${betType.unit}${periodText}, kết quả trận đấu ${homeTeam} ${homeScore}-${awayScore} ${awayTeam}.${liveText} Kết quả từng phần: ${partText}.`,
+    note: `${selectedName} ${directionText} ${numberFormatter.format(rawLine)} ${betType.unit}${periodText}\nKết quả trận đấu ${homeTeam} ${homeScore}-${awayScore} ${awayTeam}.${liveText}\nKết quả từng phần: ${partText}.`,
     steps: [
       timing === "live" ? `Lấy phần phát sinh sau lúc đặt: ${homeScore}-${awayScore} trừ ${startHomeScore}-${startAwayScore} = ${effective.home}-${effective.away}.` : `Kết quả dùng để tính: ${homeScore}-${awayScore}.`,
       `Áp kèo ${selectedName} ${directionText} ${numberFormatter.format(rawLine)}${parts.length === 2 ? `, chia thành ${partText}` : ""}.`,
