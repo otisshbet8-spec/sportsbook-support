@@ -1262,7 +1262,7 @@ init();
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
-    document.querySelectorAll('input:not([type=radio]):not([type=checkbox]):not([type=number]),select')
+        document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
       .forEach(el=>initComet(el));
   });
 })();
