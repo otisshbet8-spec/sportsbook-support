@@ -1,19 +1,19 @@
 :root {
   color-scheme: dark;
-  --bg: #060300;
-  --surface: rgba(28,11,0,0.80);
-  --surface-strong: rgba(28,11,0,0.80);
-  --surface-soft: rgba(20,8,0,0.92);
-  --text: #edf5ff;
-  --muted: #d4956a;
-  --line: rgba(144, 164, 185, 0.2);
-  --green: #ff9a4d;
-  --cyan: #5bc7ff;
-  --red: #ff6f7d;
-  --amber: #ffc66d;
-  --ink: #dcecff;
-  --shadow-dark: rgba(0, 0, 0, 0.36);
-  --shadow-light: rgba(116, 148, 184, 0.08);
+  --bg: #1e1e1e;
+  --surface: #252525;
+  --surface-strong: #2a2a2a;
+  --surface-soft: #1e1e1e;
+  --text: #f0efec;
+  --muted: #888780;
+  --line: rgba(255, 255, 255, 0.08);
+  --green: #97c459;
+  --cyan: #97c459;
+  --red: #e05c5c;
+  --amber: #c9a84c;
+  --ink: #f0efec;
+  --shadow-dark: rgba(0, 0, 0, 0.4);
+  --shadow-light: rgba(255, 255, 255, 0.03);
 }
 
 * {
@@ -30,8 +30,7 @@ body {
   font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
   color: var(--text);
   background:
-    radial-gradient(ellipse at 100% 0%, rgba(255, 100, 0, 0.35) 0%, transparent 55%),
-    #0d0500;
+    background: #1e1e1e;
 }
 
 button,
@@ -152,9 +151,9 @@ textarea,
 
 .tab-button.active {
   color: var(--text);
-  background: linear-gradient(135deg, rgba(255, 120, 0, 0.35), rgba(255, 80, 0, 0.2));
+  background: #3a3a3a;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 120, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     0 10px 32px rgba(0, 0, 0, 0.24);
 }
 
@@ -581,9 +580,9 @@ textarea:focus {
 
 .segmented input:checked + span {
   color: var(--text);
-  background: linear-gradient(135deg, rgba(255, 120, 0, 0.35), rgba(255, 80, 0, 0.2));
+  background: #3a3a3a;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 120, 0, 0.45);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .result-card {
@@ -758,10 +757,9 @@ textarea:focus {
   padding: 0 14px;
   border-radius: 8px;
   font-weight: 800;
-  background: linear-gradient(135deg, rgba(255, 120, 0, 0.35), rgba(255, 80, 0, 0.2));
-  box-shadow: inset 0 0 0 1px rgba(255, 120, 0, 0.5);
-  color: #ffffff;
-  border: none;
+  background: #3a3a3a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+  c0 12px 30px rgba(0, 0, 0, 0.28);
 }
 
 .toast {
