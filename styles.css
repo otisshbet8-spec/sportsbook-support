@@ -894,3 +894,7 @@ textarea:focus {
   position: relative;
   z-index: 1;
 }
+.input-comet-wrap {
+  display: inline-grid;
+  width: 100%;
+}
