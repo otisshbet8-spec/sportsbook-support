@@ -1198,7 +1198,7 @@ init();
       ctx.clearRect(0,0,W,H);
 
       // viền mờ khi focus
-      ctx.strokeStyle='rgba(255,100,0,0.3)';
+      ctx.strokeStyle='rgba(255,255,255,0.2)';
       ctx.lineWidth=1;
       ctx.beginPath();
       ctx.roundRect(OFFSET,OFFSET,iW,iH,BORDER_RADIUS);
@@ -1262,7 +1262,9 @@ init();
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
-    document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
+    document.querySelectorAll('input:not([type=radio]):not([type=checkbox]):not([type=number]),select')
+      .forEach(el=>initComet(el));
+
+    document.querySelectorAll('input[type=number]')
       .forEach(el=>initComet(el));
   });
-})();
