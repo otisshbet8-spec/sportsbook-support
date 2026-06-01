@@ -1142,7 +1142,7 @@ init();
 (function() {
   const OFFSET = 3;
   const BORDER_RADIUS = 8;
-  const DOT_COLOR = '#ff8c00';
+  const DOT_COLOR = '#ffffff';
   const TAIL_LEN = 70;
   const SPEED = 1;
 
@@ -1211,7 +1211,7 @@ init();
           const pt=ptOnPath(t,iW,iH,BORDER_RADIUS);
           const alpha=Math.pow(1-i/80,2.5)*0.9;
           const sz=(1-i/80)*2.5;
-          ctx.fillStyle=`rgba(255,140,0,${alpha})`;
+          ctx.fillStyle=`rgba(255,255,255,${alpha})`;
           ctx.beginPath();
           ctx.arc(pt.x+OFFSET,pt.y+OFFSET,sz,0,Math.PI*2);
           ctx.fill();
