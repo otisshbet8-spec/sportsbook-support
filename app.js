@@ -1138,6 +1138,203 @@ tabButtons.forEach((button) => {
 });
 
 init();
+(function(){
+  const parlayTypeEl=document.querySelector('#parlayType');
+  const parlayStakeEl=document.querySelector('#parlayStake');
+  const parlayLegsEl=document.querySelector('#parlayLegs');
+  const addLegBtnEl=document.querySelector('#addLegBtn');
+  const parlayResultLabelEl=document.querySelector('#parlayResultLabel');
+  const parlayPointsEl=document.querySelector('#parlayPointsOutput');
+  const parlayTypeLabelEl=document.querySelector('#parlayTypeLabel');
+  const parlayWinCombosEl=document.querySelector('#parlayWinCombos');
+  const parlayTotalStakeEl=document.querySelector('#parlayTotalStake');
+  const parlayNetWinEl=document.querySelector('#parlayNetWin');
+  const parlayStepsEl=document.querySelector('#parlaySteps');
+
+  const CONFIGS={
+    straight:{name:'Xiên thẳng',fixed:null},
+    trixie:{name:'Trixie',fixed:3,sizes:[2,3]},
+    lucky15:{name:'Lucky 15',fixed:4,sizes:[1,2,3,4]},
+    yankee:{name:'Yankee',fixed:4,sizes:[2,3,4]},
+    canadian:{name:'Canadian',fixed:5,sizes:[2,3,4,5]},
+    heinz:{name:'Heinz',fixed:6,sizes:[2,3,4,5,6]},
+    superheinz:{name:'Super Heinz',fixed:7,sizes:[2,3,4,5,6,7]},
+    goliath:{name:'Goliath',fixed:8,sizes:[2,3,4,5,6,7,8]},
+  };
+
+  function getCombos(arr,k){
+    if(k===1)return arr.map(x=>[x]);
+    const res=[];
+    for(let i=0;i<=arr.length-k;i++){
+      getCombos(arr.slice(i+1),k-1).forEach(c=>res.push([arr[i],...c]));
+    }
+    return res;
+  }
+
+  function effectiveOdds(odds,result){
+    if(result==='win') return odds;
+    if(result==='lose') return 0;
+    if(result==='push') return 1;
+    if(result==='half_win') return (odds+1)/2;
+    if(result==='half_lose') return 0.5;
+    return odds;
+  }
+
+  function createLeg(i){
+    const d=document.createElement('div');
+    d.className='parlay-leg';
+    d.dataset.index=i;
+    d.style.cssText='display:grid;grid-template-columns:24px 1fr 120px 140px 24px;gap:8px;align-items:end;margin-bottom:10px;padding:12px;border-radius:8px;background:var(--surface-soft);border:1px solid var(--line);';
+    d.innerHTML=`
+      <span style="font-weight:700;color:var(--muted);font-size:13px;padding-bottom:12px;">${i+1}</span>
+      <label style="margin:0;">
+        <span>Tên nhánh</span>
+        <input type="text" class="leg-name" placeholder="VD: Everton thắng" autocomplete="off"/>
+      </label>
+      <label style="margin:0;">
+        <span>Tỉ lệ Decimal</span>
+        <input type="number" class="leg-odds" step="0.01" min="1.01" value="1.95" inputmode="decimal"/>
+      </label>
+      <label style="margin:0;">
+        <span>Kết quả</span>
+        <select class="leg-result">
+          <option value="win">Thắng</option>
+          <option value="lose">Thua</option>
+          <option value="push">Hòa</option>
+          <option value="half_win">Thắng nửa</option>
+          <option value="half_lose">Thua nửa</option>
+        </select>
+      </label>
+      <button type="button" class="remove-leg" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding-bottom:10px;" title="Xóa">×</button>
+    `;
+    d.querySelector('.remove-leg').addEventListener('click',()=>{
+      d.remove();reindex();calcParlay();
+    });
+    d.querySelector('.leg-odds').addEventListener('input',calcParlay);
+    d.querySelector('.leg-result').addEventListener('change',calcParlay);
+    d.querySelector('.leg-name').addEventListener('input',calcParlay);
+    return d;
+  }
+
+  function reindex(){
+    document.querySelectorAll('.parlay-leg').forEach((el,i)=>{
+      el.dataset.index=i;
+      el.querySelector('span').textContent=i+1;
+    });
+  }
+
+  function getLegs(){
+    return Array.from(document.querySelectorAll('.parlay-leg')).map((el,i)=>({
+      name:el.querySelector('.leg-name').value.trim()||`Nhánh ${i+1}`,
+      odds:parseFloat(el.querySelector('.leg-odds').value)||1.95,
+      result:el.querySelector('.leg-result').value,
+    }));
+  }
+
+  function calcParlay(){
+    const type=parlayTypeEl.value;
+    const stake=Math.max(0,parseFloat(parlayStakeEl.value)||0);
+    const legs=getLegs();
+    const cfg=CONFIGS[type];
+    const fmt=v=>numberFormatter.format(Math.round(v*100)/100);
+
+    if(!legs.length){
+      parlayPointsEl.textContent='--';
+      return;
+    }
+
+    let allCombos=[],totalStake=0,totalReturn=0,winCount=0;
+    const steps=[];
+
+    if(type==='straight'){
+      if(legs.length<2){
+        parlayPointsEl.textContent='Cần ít nhất 2 nhánh';
+        return;
+      }
+      allCombos=[legs.map((_,i)=>i)];
+    } else {
+      const idx=legs.map((_,i)=>i);
+      cfg.sizes.forEach(sz=>{
+        if(sz<=legs.length) getCombos(idx,sz).forEach(c=>allCombos.push(c));
+      });
+    }
+
+    totalStake=stake*allCombos.length;
+
+    allCombos.forEach((combo,ci)=>{
+      const comboLegs=combo.map(i=>legs[i]);
+      let multiplier=1,lost=false;
+
+      comboLegs.forEach(leg=>{
+        const eff=effectiveOdds(leg.odds,leg.result);
+        if(eff===0){lost=true;}
+        else{multiplier*=eff;}
+      });
+
+      const ret=lost?0:Math.round(stake*multiplier*100)/100;
+      const net=Math.round((ret-stake)*100)/100;
+      totalReturn+=ret;
+      if(net>0)winCount++;
+
+      if(allCombos.length<=20){
+        const names=comboLegs.map(l=>l.name).join(' + ');
+        const oddsDetail=comboLegs.map(l=>{
+          const eff=effectiveOdds(l.odds,l.result);
+          return `${l.name}(${fmt(eff)})`;
+        }).join(' × ');
+        steps.push(`[${ci+1}] ${names}: ${oddsDetail} → Về ${fmt(ret)} | ${net>=0?'+':''}${fmt(net)}`);
+      }
+    });
+
+    if(allCombos.length>20){
+      steps.push(`Tổng ${allCombos.length} tổ hợp — ${winCount} tổ hợp thắng.`);
+      steps.push(`Tổng tiền về: ${fmt(totalReturn)} điểm`);
+      steps.push(`Tổng tiền cược: ${fmt(totalStake)} điểm`);
+    }
+
+    const totalNet=Math.round((totalReturn-totalStake)*100)/100;
+    const isWin=totalNet>0;
+    const isPush=totalNet===0;
+
+    parlayResultLabelEl.textContent=isWin?'Thắng':isPush?'Hòa':'Thua';
+    parlayResultLabelEl.className=isWin?'':isPush?'push':'loss';
+    parlayPointsEl.textContent=`${fmt(totalNet)} điểm`;
+    parlayTypeLabelEl.textContent=cfg.name;
+    parlayWinCombosEl.textContent=`${winCount} / ${allCombos.length} tổ hợp`;
+    parlayTotalStakeEl.textContent=`${fmt(totalStake)} điểm`;
+    parlayNetWinEl.textContent=`${fmt(totalNet)} điểm`;
+    parlayStepsEl.innerHTML=steps.map(s=>`<li>${s}</li>`).join('');
+  }
+
+  function initLegs(n){
+    parlayLegsEl.innerHTML='';
+    for(let i=0;i<n;i++)parlayLegsEl.appendChild(createLeg(i));
+    calcParlay();
+  }
+
+  function onTypeChange(){
+    const cfg=CONFIGS[parlayTypeEl.value];
+    if(cfg.fixed){
+      initLegs(cfg.fixed);
+      addLegBtnEl.style.display='none';
+    } else {
+      const cur=document.querySelectorAll('.parlay-leg').length;
+      if(cur<2)initLegs(2);
+      addLegBtnEl.style.display='block';
+    }
+  }
+
+  addLegBtnEl.addEventListener('click',()=>{
+    const n=document.querySelectorAll('.parlay-leg').length;
+    if(n>=8)return;
+    parlayLegsEl.appendChild(createLeg(n));
+    calcParlay();
+  });
+
+  parlayTypeEl.addEventListener('change',onTypeChange);
+  parlayStakeEl.addEventListener('input',calcParlay);
+  onTypeChange();
+})();
 
 (function() {
   const OFFSET = 3;
