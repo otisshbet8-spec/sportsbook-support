@@ -519,7 +519,62 @@
         </article>
       </section>
     </main>
-
+  <section class="tab-panel" id="parlayPanel">
+  <article class="panel calculator-panel">
+    <div class="panel-heading compact">
+      <div>
+        <p class="eyebrow">Parlay Tool</p>
+        <h2>Tính Kèo Xiên</h2>
+      </div>
+    </div>
+    <div class="tool-layout">
+      <div>
+        <div class="input-grid" style="grid-template-columns:1fr 1fr; margin-bottom:16px;">
+          <label>
+            <span>Loại cược xiên</span>
+            <select id="parlayType">
+              <option value="straight">Xiên thẳng (2-8 nhánh)</option>
+              <option value="trixie">Trixie (3 trận - 4 tổ hợp)</option>
+              <option value="lucky15">Lucky 15 (4 trận - 15 tổ hợp)</option>
+              <option value="yankee">Yankee (4 trận - 11 tổ hợp)</option>
+              <option value="canadian">Canadian (5 trận - 26 tổ hợp)</option>
+              <option value="heinz">Heinz (6 trận - 57 tổ hợp)</option>
+              <option value="superheinz">Super Heinz (7 trận - 120 tổ hợp)</option>
+              <option value="goliath">Goliath (8 trận - 247 tổ hợp)</option>
+            </select>
+          </label>
+          <label>
+            <span>Số điểm cược mỗi tổ hợp</span>
+            <input id="parlayStake" type="number" min="0" step="1" value="100" inputmode="numeric"/>
+          </label>
+        </div>
+        <div id="parlayLegs"></div>
+        <button type="button" id="addLegBtn" style="margin-top:12px;width:100%;min-height:44px;border-radius:8px;border:1px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer;font-weight:700;">
+          + Thêm nhánh
+        </button>
+      </div>
+      <aside class="tool-output">
+        <section class="result-card" aria-live="polite">
+          <p class="eyebrow">Kết toán Xiên</p>
+          <div class="result-main">
+            <span id="parlayResultLabel">--</span>
+            <strong id="parlayPointsOutput">--</strong>
+          </div>
+          <dl class="result-detail">
+            <div><dt>Loại xiên</dt><dd id="parlayTypeLabel">--</dd></div>
+            <div><dt>Số tổ hợp thắng</dt><dd id="parlayWinCombos">--</dd></div>
+            <div><dt>Tổng tiền cược</dt><dd id="parlayTotalStake">--</dd></div>
+            <div><dt>Lợi nhuận ròng</dt><dd id="parlayNetWin">--</dd></div>
+          </dl>
+          <section class="settlement-steps">
+            <p class="eyebrow">Chi tiết từng tổ hợp</p>
+            <ol id="parlaySteps"></ol>
+          </section>
+        </section>
+      </aside>
+    </div>
+  </article>
+</section>
     <div class="toast" id="toast" role="status" aria-live="polite">Đã sao chép script</div>
     <script src="app.js"></script>
   </body>
