@@ -898,3 +898,13 @@ textarea:focus {
   display: inline-grid;
   width: 100%;
 }
+
+.parlay-leg input,
+.parlay-leg select {
+  height: 44px;
+  font-size: 13px;
+}
+.parlay-leg label span {
+  font-size: 11px;
+  margin-bottom: 6px;
+}
