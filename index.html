@@ -520,16 +520,16 @@
       </section>
     </main>
   <section class="tab-panel" id="parlayPanel">
-  <article class="panel calculator-panel">
+  <article class="panel" style="min-height:auto;">
     <div class="panel-heading compact">
       <div>
         <p class="eyebrow">Parlay Tool</p>
         <h2>Tính Kèo Xiên</h2>
       </div>
     </div>
-    <div class="tool-layout">
-      <div>
-        <div class="input-grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-bottom:16px;">
+    <div class="tool-layout" style="grid-template-columns:minmax(0,1fr) minmax(320px,0.55fr);align-items:start;">
+      <div style="min-width:0;">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:16px;">
           <label>
             <span>Loại cược xiên</span>
             <select id="parlayType">
@@ -549,12 +549,32 @@
           </label>
         </div>
         <div id="parlayLegs"></div>
-        <button type="button" id="addLegBtn" style="margin-top:12px;width:100%;min-height:44px;border-radius:8px;border:1px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer;font-weight:700;">
+        <button type="button" id="addLegBtn" style="margin-top:12px;width:100%;min-height:44px;border-radius:8px;border:1px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer;font-weight:700;font-size:13px;">
           + Thêm nhánh
         </button>
       </div>
       <aside class="tool-output">
         <section class="result-card" aria-live="polite">
+          <p class="eyebrow">Kết toán Xiên</p>
+          <div class="result-main">
+            <span id="parlayResultLabel">--</span>
+            <strong id="parlayPointsOutput">--</strong>
+          </div>
+          <dl class="result-detail">
+            <div><dt>Loại xiên</dt><dd id="parlayTypeLabel">--</dd></div>
+            <div><dt>Tổ hợp thắng</dt><dd id="parlayWinCombos">--</dd></div>
+            <div><dt>Tổng tiền cược</dt><dd id="parlayTotalStake">--</dd></div>
+            <div><dt>Lợi nhuận</dt><dd id="parlayNetWin">--</dd></div>
+          </dl>
+          <section class="settlement-steps">
+            <p class="eyebrow">Chi tiết tính toán</p>
+            <ol id="parlaySteps"></ol>
+          </section>
+        </section>
+      </aside>
+    </div>
+  </article>
+</section>
           <p class="eyebrow">Kết toán Xiên</p>
           <div class="result-main">
             <span id="parlayResultLabel">--</span>
