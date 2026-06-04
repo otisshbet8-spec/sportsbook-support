@@ -181,6 +181,14 @@ textarea,
   min-height: auto;
 }
 
+#parlayPanel .tool-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.58fr);
+}
+
+#parlayPanel #parlayLegs .parlay-leg {
+  grid-template-columns: 24px 1fr 120px 140px 24px;
+}
+
 .panel-heading,
 .script-heading {
   display: flex;
