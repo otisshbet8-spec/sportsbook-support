@@ -527,45 +527,44 @@
         <h2>Tính Kèo Xiên</h2>
       </div>
     </div>
-    <div class="tool-layout" style="grid-template-columns:minmax(0,1fr) minmax(320px,0.55fr);align-items:start;">
-      <div style="min-width:0;">
-        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:16px;">
-          <label>
-            <span>Loại cược xiên</span>
-            <select id="parlayType">
-              <option value="straight">Xiên thẳng (2-8 nhánh)</option>
-              <option value="trixie">Trixie (3 trận - 4 tổ hợp)</option>
-              <option value="lucky15">Lucky 15 (4 trận - 15 tổ hợp)</option>
-              <option value="yankee">Yankee (4 trận - 11 tổ hợp)</option>
-              <option value="canadian">Canadian (5 trận - 26 tổ hợp)</option>
-              <option value="heinz">Heinz (6 trận - 57 tổ hợp)</option>
-              <option value="superheinz">Super Heinz (7 trận - 120 tổ hợp)</option>
-              <option value="goliath">Goliath (8 trận - 247 tổ hợp)</option>
-            </select>
-          </label>
-          <label>
-            <span>Số điểm cược mỗi tổ hợp</span>
-            <input id="parlayStake" type="number" min="0" step="1" value="100" inputmode="numeric"/>
-          </label>
-        </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+      <div style="display:flex;gap:8px;">
+        <button type="button" id="parlayModeStraight" class="parlay-mode-btn active">Xiên thẳng</button>
+        <button type="button" id="parlayModeSystem" class="parlay-mode-btn">Xiên tổng hợp</button>
+      </div>
+      <label style="display:flex;flex-direction:column;width:140px;">
+        <span style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px;">Điểm mỗi tổ hợp</span>
+        <input id="parlayStake" type="number" min="0" step="1" value="100" inputmode="numeric" style="height:42px;font-size:14px;"/>
+      </label>
+    </div>
+
+    <div id="parlaySystemNote" class="hidden" style="background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--muted);line-height:1.6;">
+      <strong style="color:var(--text);">Xiên tổng hợp</strong> — Hệ thống tự ghép tất cả tổ hợp từ các nhánh. 
+      Tổng tiền cược = <strong style="color:var(--text);" id="parlayComboCount">--</strong> tổ hợp × <strong style="color:var(--text);" id="parlayStakeNote">100</strong> điểm
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start;">
+
+      <div>
         <div id="parlayLegs"></div>
-        <button type="button" id="addLegBtn" style="margin-top:12px;width:100%;min-height:44px;border-radius:8px;border:1px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer;font-weight:700;font-size:13px;">
+        <button type="button" id="addLegBtn" style="margin-top:4px;width:100%;min-height:44px;border-radius:8px;border:1px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer;font-weight:700;font-size:13px;">
           + Thêm nhánh
         </button>
       </div>
-      <aside class="tool-output">
-        <section class="result-card" aria-live="polite">
 
-          <p class="eyebrow">Kết toán Xiên</p>
-          <div class="result-main">
+      <aside style="position:sticky;top:20px;">
+        <section class="result-card" aria-live="polite">
+          <p class="eyebrow">Kết toán xiên</p>
+          <div class="result-main" style="margin-bottom:12px;">
             <span id="parlayResultLabel">--</span>
-            <strong id="parlayPointsOutput">--</strong>
+            <strong id="parlayPointsOutput" style="font-size:2.2rem;">--</strong>
           </div>
-          <dl class="result-detail">
+          <dl class="result-detail" style="margin-bottom:12px;">
             <div><dt>Loại xiên</dt><dd id="parlayTypeLabel">--</dd></div>
-            <div><dt>Số tổ hợp thắng</dt><dd id="parlayWinCombos">--</dd></div>
-            <div><dt>Tổng tiền cược</dt><dd id="parlayTotalStake">--</dd></div>
-            <div><dt>Lợi nhuận ròng</dt><dd id="parlayNetWin">--</dd></div>
+            <div><dt>Tổ hợp thắng</dt><dd id="parlayWinCombos">--</dd></div>
+            <div><dt>Tổng cược</dt><dd id="parlayTotalStake">--</dd></div>
+            <div><dt>Lợi nhuận</dt><dd id="parlayNetWin">--</dd></div>
           </dl>
           <section class="settlement-steps">
             <p class="eyebrow">Chi tiết từng tổ hợp</p>
@@ -573,6 +572,7 @@
           </section>
         </section>
       </aside>
+
     </div>
   </article>
 </section>
