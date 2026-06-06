@@ -1139,201 +1139,425 @@ tabButtons.forEach((button) => {
 
 init();
 (function(){
-  const parlayTypeEl=document.querySelector('#parlayType');
-  const parlayStakeEl=document.querySelector('#parlayStake');
-  const parlayLegsEl=document.querySelector('#parlayLegs');
-  const addLegBtnEl=document.querySelector('#addLegBtn');
-  const parlayResultLabelEl=document.querySelector('#parlayResultLabel');
-  const parlayPointsEl=document.querySelector('#parlayPointsOutput');
-  const parlayTypeLabelEl=document.querySelector('#parlayTypeLabel');
-  const parlayWinCombosEl=document.querySelector('#parlayWinCombos');
-  const parlayTotalStakeEl=document.querySelector('#parlayTotalStake');
-  const parlayNetWinEl=document.querySelector('#parlayNetWin');
-  const parlayStepsEl=document.querySelector('#parlaySteps');
 
-  const CONFIGS={
-    straight:{name:'Xiên thẳng',fixed:null},
-    trixie:{name:'Trixie',fixed:3,sizes:[2,3]},
-    lucky15:{name:'Lucky 15',fixed:4,sizes:[1,2,3,4]},
-    yankee:{name:'Yankee',fixed:4,sizes:[2,3,4]},
-    canadian:{name:'Canadian',fixed:5,sizes:[2,3,4,5]},
-    heinz:{name:'Heinz',fixed:6,sizes:[2,3,4,5,6]},
-    superheinz:{name:'Super Heinz',fixed:7,sizes:[2,3,4,5,6,7]},
-    goliath:{name:'Goliath',fixed:8,sizes:[2,3,4,5,6,7,8]},
-  };
+const BET_TYPES = [
+  {value:'handicap',    label:'Cược chấp',          needLine:true,  needSide:true},
+  {value:'total',       label:'Tài / Xỉu',           needLine:true,  needSide:false},
+  {value:'onexTwo',     label:'1X2',                  needLine:false, needSide:false},
+  {value:'cornerHcp',   label:'Phạt góc chấp',        needLine:true,  needSide:true},
+  {value:'cornerTotal', label:'Phạt góc tài/xỉu',     needLine:true,  needSide:false},
+  {value:'cardHcp',     label:'Thẻ phạt chấp',        needLine:true,  needSide:true},
+  {value:'cardTotal',   label:'Thẻ phạt tài/xỉu',     needLine:true,  needSide:false},
+];
 
-  function getCombos(arr,k){
-    if(k===1)return arr.map(x=>[x]);
-    const res=[];
-    for(let i=0;i<=arr.length-k;i++){
-      getCombos(arr.slice(i+1),k-1).forEach(c=>res.push([arr[i],...c]));
-    }
-    return res;
+const PERIODS = ['Toàn trận','Hiệp 1','Hiệp 2','Thêm giờ'];
+
+// DOM
+const legsContainer  = document.querySelector('#parlayLegs');
+const addBtn         = document.querySelector('#addLegBtn');
+const stakeInput     = document.querySelector('#parlayStake');
+const stakeNote      = document.querySelector('#parlayStakeNote');
+const comboCountEl   = document.querySelector('#parlayComboCount');
+const systemNote     = document.querySelector('#parlaySystemNote');
+const btnStraight    = document.querySelector('#parlayModeStraight');
+const btnSystem      = document.querySelector('#parlayModeSystem');
+const resultLabelEl  = document.querySelector('#parlayResultLabel');
+const pointsEl       = document.querySelector('#parlayPointsOutput');
+const typeLabelEl    = document.querySelector('#parlayTypeLabel');
+const winCombosEl    = document.querySelector('#parlayWinCombos');
+const totalStakeEl   = document.querySelector('#parlayTotalStake');
+const netWinEl       = document.querySelector('#parlayNetWin');
+const stepsEl        = document.querySelector('#parlaySteps');
+
+let mode = 'straight'; // 'straight' | 'system'
+
+// ── Helpers ──────────────────────────────────────────
+function fmt(v){ return numberFormatter.format(Math.round(v*100)/100); }
+
+function getCombos(arr, k){
+  if(k===1) return arr.map(x=>[x]);
+  const res=[];
+  for(let i=0;i<=arr.length-k;i++)
+    getCombos(arr.slice(i+1),k-1).forEach(c=>res.push([arr[i],...c]));
+  return res;
+}
+
+// Tách "A - B" hoặc "A-B" thành {home, away}
+function parseScore(str){
+  const m = str.replace(/\s/g,'').match(/^(\d+)[:\-](\d+)$/);
+  if(!m) return null;
+  return {home:parseInt(m[1]), away:parseInt(m[2])};
+}
+
+// Tính kết quả 1 nhánh → trả về {outcome, effOdds, desc}
+// outcome: 'win'|'lose'|'push'|'half_win'|'half_lose'
+function calcLegResult(leg){
+  const sc = parseScore(leg.score);
+  if(!sc) return null;
+  const {home, away} = sc;
+  const line = parseFloat(leg.line) || 0;
+  const odds = parseFloat(leg.odds) || 1;
+  const type = leg.betType;
+  let outcome, desc;
+
+  if(type==='onexTwo'){
+    // 1X2: không cần mốc
+    // pick dựa trên đội chấp (dùng làm đội được chọn)
+    const pick = leg.side; // 'home'|'away'|'draw'
+    const actual = home>away?'home':home<away?'away':'draw';
+    outcome = pick===actual?'win':'lose';
+    desc = `1X2: ${pick==='home'?leg.homeTeam:pick==='away'?leg.awayTeam:'Hòa'} → ${outcome==='win'?'Thắng':'Thua'}`;
+  }
+  else if(type==='handicap'||type==='cornerHcp'||type==='cardHcp'){
+    // Cược chấp: đội side chấp (-line)
+    // Nếu side=home: home - line vs away
+    // Nếu side=away: away - line vs home
+    const sideScore = leg.side==='home' ? home : away;
+    const otherScore = leg.side==='home' ? away : home;
+    const margin = sideScore - otherScore - line;
+    // Split nếu 0.25/0.75
+    const parts = splitLine(margin);
+    outcome = summarizeOutcome(parts.map(p=>evalMargin(p)));
+    const sideName = leg.side==='home'?leg.homeTeam:leg.awayTeam;
+    desc = `${sideName} chấp ${line} — cách biệt ${sideScore}-${otherScore} → ${outcomeLabel(outcome)}`;
+  }
+  else if(type==='total'||type==='cornerTotal'||type==='cardTotal'){
+    // Tài/xỉu: side = 'over'|'under'
+    const total = home + away;
+    const diff = leg.side==='over' ? total-line : line-total;
+    const parts = splitLine(diff);
+    outcome = summarizeOutcome(parts.map(p=>evalMargin(p)));
+    desc = `${leg.side==='over'?'Tài':'Xỉu'} ${line} — tổng ${total} → ${outcomeLabel(outcome)}`;
   }
 
-  function effectiveOdds(odds,result){
-    if(result==='win') return odds;
-    if(result==='lose') return 0;
-    if(result==='push') return 1;
-    if(result==='half_win') return (odds+1)/2;
-    if(result==='half_lose') return 0.5;
-    return odds;
-  }
+  const effOdds = effectiveOdds(odds, outcome);
+  return {outcome, effOdds, desc};
+}
 
-  function createLeg(i){
-    const d=document.createElement('div');
-    d.className='parlay-leg';
-    d.dataset.index=i;
-    d.style.cssText='display:grid;grid-template-columns:24px 1fr 120px 140px 24px;gap:8px;align-items:end;margin-bottom:10px;padding:12px;border-radius:8px;background:var(--surface-soft);border:1px solid var(--line);';
-    d.innerHTML=`
-      <span style="font-weight:700;color:var(--muted);font-size:13px;padding-bottom:12px;">${i+1}</span>
+function splitLine(val){
+  const scaled = Math.round(val*100);
+  const rem = Math.abs(scaled)%50;
+  if(rem!==25) return [val];
+  return [Math.floor(val*2)/2, Math.ceil(val*2)/2];
+}
+
+function evalMargin(m){
+  if(m>0) return 'win';
+  if(m<0) return 'lose';
+  return 'push';
+}
+
+function summarizeOutcome(parts){
+  if(parts.every(p=>p==='win'))  return 'win';
+  if(parts.every(p=>p==='lose')) return 'lose';
+  if(parts.every(p=>p==='push')) return 'push';
+  if(parts.includes('win')&&parts.includes('push'))  return 'half_win';
+  if(parts.includes('lose')&&parts.includes('push')) return 'half_lose';
+  return 'push';
+}
+
+function outcomeLabel(o){
+  return {win:'Thắng',lose:'Thua',push:'Hòa',half_win:'Thắng nửa',half_lose:'Thua nửa'}[o]||'--';
+}
+
+function effectiveOdds(odds, outcome){
+  switch(outcome){
+    case 'win':       return odds;
+    case 'lose':      return 0;
+    case 'push':      return 1;
+    case 'half_win':  return (odds+1)/2;
+    case 'half_lose': return 0.5;
+    default:          return odds;
+  }
+}
+
+function badgeClass(o){
+  return {win:'parlay-badge-win',lose:'parlay-badge-lose',push:'parlay-badge-push',
+          half_win:'parlay-badge-halfw',half_lose:'parlay-badge-halfl'}[o]||'parlay-badge-push';
+}
+
+// ── Tạo leg card ─────────────────────────────────────
+function createLeg(idx){
+  const d = document.createElement('div');
+  d.className = 'parlay-leg-card';
+  d.dataset.idx = idx;
+
+  d.innerHTML = `
+    <div class="parlay-leg-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="parlay-leg-num">${idx+1}</div>
+        <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">Nhánh ${idx+1}</span>
+      </div>
+      <div class="parlay-leg-del" data-action="delete">×</div>
+    </div>
+
+    <div class="parlay-grid2">
       <label style="margin:0;">
-        <span>Tên nhánh</span>
-        <input type="text" class="leg-name" placeholder="VD: Everton thắng" autocomplete="off"/>
+        <span>Đội nhà</span>
+        <input type="text" class="leg-home" placeholder="Tên đội nhà" autocomplete="off" style="height:48px;font-size:15px;font-weight:500;"/>
+      </label>
+      <label style="margin:0;">
+        <span>Đội khách</span>
+        <input type="text" class="leg-away" placeholder="Tên đội khách" autocomplete="off" style="height:48px;font-size:15px;font-weight:500;"/>
+      </label>
+    </div>
+
+    <hr class="parlay-sep">
+
+    <div class="parlay-grid4">
+      <label style="margin:0;">
+        <span>Loại cược</span>
+        <select class="leg-type">
+          ${BET_TYPES.map(t=>`<option value="${t.value}">${t.label}</option>`).join('')}
+        </select>
+      </label>
+      <label style="margin:0;" class="leg-side-wrap">
+        <span class="leg-side-label">Đội chấp</span>
+        <select class="leg-side">
+          <option value="home">Đội nhà</option>
+          <option value="away">Đội khách</option>
+          <option value="over" class="opt-over" style="display:none">Tài</option>
+          <option value="under" class="opt-under" style="display:none">Xỉu</option>
+        </select>
+      </label>
+      <label style="margin:0;">
+        <span>Hiệp</span>
+        <select class="leg-period">
+          ${PERIODS.map(p=>`<option value="${p}">${p}</option>`).join('')}
+        </select>
+      </label>
+      <label style="margin:0;" class="leg-line-wrap">
+        <span>Mốc chấp / tài xỉu</span>
+        <input type="number" class="leg-line" step="0.25" value="0.75" inputmode="decimal"/>
+      </label>
+    </div>
+
+    <hr class="parlay-sep">
+
+    <div class="parlay-score-grid">
+      <label style="margin:0;">
+        <span>Kết quả đội nhà</span>
+        <input type="number" class="leg-home-score" min="0" step="1" value="0" inputmode="numeric" style="height:52px;font-size:22px;font-weight:700;text-align:center;"/>
+      </label>
+      <div style="display:flex;align-items:center;justify-content:center;padding-top:24px;font-size:18px;color:var(--muted);">—</div>
+      <label style="margin:0;">
+        <span>Kết quả đội khách</span>
+        <input type="number" class="leg-away-score" min="0" step="1" value="0" inputmode="numeric" style="height:52px;font-size:22px;font-weight:700;text-align:center;"/>
       </label>
       <label style="margin:0;">
         <span>Tỉ lệ Decimal</span>
-        <input type="number" class="leg-odds" step="0.01" min="1.01" value="1.95" inputmode="decimal"/>
+        <input type="number" class="leg-odds" step="0.01" min="1.01" value="1.95" inputmode="decimal" style="height:52px;font-size:18px;font-weight:500;"/>
       </label>
-      <label style="margin:0;">
-        <span>Kết quả</span>
-        <select class="leg-result">
-          <option value="win">Thắng</option>
-          <option value="lose">Thua</option>
-          <option value="push">Hòa</option>
-          <option value="half_win">Thắng nửa</option>
-          <option value="half_lose">Thua nửa</option>
-        </select>
-      </label>
-      <button type="button" class="remove-leg" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding-bottom:10px;" title="Xóa">×</button>
-    `;
-    d.querySelector('.remove-leg').addEventListener('click',()=>{
-      d.remove();reindex();calcParlay();
-    });
-    d.querySelector('.leg-odds').addEventListener('input',calcParlay);
-    d.querySelector('.leg-result').addEventListener('change',calcParlay);
-    d.querySelector('.leg-name').addEventListener('input',calcParlay);
-    return d;
-  }
+    </div>
 
-  function reindex(){
-    document.querySelectorAll('.parlay-leg').forEach((el,i)=>{
-      el.dataset.index=i;
-      el.querySelector('span').textContent=i+1;
-    });
-  }
+    <div class="parlay-result-row">
+      <span class="leg-result-desc" style="font-size:12px;color:var(--muted);">Nhập tỉ số để xem kết quả</span>
+      <span class="leg-result-badge parlay-badge parlay-badge-push">--</span>
+    </div>
+  `;
 
-  function getLegs(){
-    return Array.from(document.querySelectorAll('.parlay-leg')).map((el,i)=>({
-      name:el.querySelector('.leg-name').value.trim()||`Nhánh ${i+1}`,
-      odds:parseFloat(el.querySelector('.leg-odds').value)||1.95,
-      result:el.querySelector('.leg-result').value,
-    }));
-  }
-
-  function calcParlay(){
-    const type=parlayTypeEl.value;
-    const stake=Math.max(0,parseFloat(parlayStakeEl.value)||0);
-    const legs=getLegs();
-    const cfg=CONFIGS[type];
-    const fmt=v=>numberFormatter.format(Math.round(v*100)/100);
-
-    if(!legs.length){
-      parlayPointsEl.textContent='--';
-      return;
-    }
-
-    let allCombos=[],totalStake=0,totalReturn=0,winCount=0;
-    const steps=[];
-
-    if(type==='straight'){
-      if(legs.length<2){
-        parlayPointsEl.textContent='Cần ít nhất 2 nhánh';
-        return;
-      }
-      allCombos=[legs.map((_,i)=>i)];
-    } else {
-      const idx=legs.map((_,i)=>i);
-      cfg.sizes.forEach(sz=>{
-        if(sz<=legs.length) getCombos(idx,sz).forEach(c=>allCombos.push(c));
-      });
-    }
-
-    totalStake=stake*allCombos.length;
-
-    allCombos.forEach((combo,ci)=>{
-      const comboLegs=combo.map(i=>legs[i]);
-      let multiplier=1,lost=false;
-
-      comboLegs.forEach(leg=>{
-        const eff=effectiveOdds(leg.odds,leg.result);
-        if(eff===0){lost=true;}
-        else{multiplier*=eff;}
-      });
-
-      const ret=lost?0:Math.round(stake*multiplier*100)/100;
-      const net=Math.round((ret-stake)*100)/100;
-      totalReturn+=ret;
-      if(net>0)winCount++;
-
-      if(allCombos.length<=20){
-        const names=comboLegs.map(l=>l.name).join(' + ');
-        const oddsDetail=comboLegs.map(l=>{
-          const eff=effectiveOdds(l.odds,l.result);
-          return `${l.name}(${fmt(eff)})`;
-        }).join(' × ');
-        steps.push(`[${ci+1}] ${names}: ${oddsDetail} → Về ${fmt(ret)} | ${net>=0?'+':''}${fmt(net)}`);
-      }
-    });
-
-    if(allCombos.length>20){
-      steps.push(`Tổng ${allCombos.length} tổ hợp — ${winCount} tổ hợp thắng.`);
-      steps.push(`Tổng tiền về: ${fmt(totalReturn)} điểm`);
-      steps.push(`Tổng tiền cược: ${fmt(totalStake)} điểm`);
-    }
-
-    const totalNet=Math.round((totalReturn-totalStake)*100)/100;
-    const isWin=totalNet>0;
-    const isPush=totalNet===0;
-
-    parlayResultLabelEl.textContent=isWin?'Thắng':isPush?'Hòa':'Thua';
-    parlayResultLabelEl.className=isWin?'':isPush?'push':'loss';
-    parlayPointsEl.textContent=`${fmt(totalNet)} điểm`;
-    parlayTypeLabelEl.textContent=cfg.name;
-    parlayWinCombosEl.textContent=`${winCount} / ${allCombos.length} tổ hợp`;
-    parlayTotalStakeEl.textContent=`${fmt(totalStake)} điểm`;
-    parlayNetWinEl.textContent=`${fmt(totalNet)} điểm`;
-    parlayStepsEl.innerHTML=steps.map(s=>`<li>${s}</li>`).join('');
-  }
-
-  function initLegs(n){
-    parlayLegsEl.innerHTML='';
-    for(let i=0;i<n;i++)parlayLegsEl.appendChild(createLeg(i));
-    calcParlay();
-  }
-
-  function onTypeChange(){
-    const cfg=CONFIGS[parlayTypeEl.value];
-    if(cfg.fixed){
-      initLegs(cfg.fixed);
-      addLegBtnEl.style.display='none';
-    } else {
-      const cur=document.querySelectorAll('.parlay-leg').length;
-      if(cur<2)initLegs(2);
-      addLegBtnEl.style.display='block';
-    }
-  }
-
-  addLegBtnEl.addEventListener('click',()=>{
-    const n=document.querySelectorAll('.parlay-leg').length;
-    if(n>=8)return;
-    parlayLegsEl.appendChild(createLeg(n));
-    calcParlay();
+  // Events
+  d.querySelector('.parlay-leg-del').addEventListener('click',()=>{
+    d.remove(); reindex(); calcParlay();
   });
 
-  parlayTypeEl.addEventListener('change',onTypeChange);
-  parlayStakeEl.addEventListener('input',calcParlay);
-  onTypeChange();
+  const typeEl = d.querySelector('.leg-type');
+  typeEl.addEventListener('change',()=>{ updateLegUI(d); calcParlay(); });
+
+  d.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener('input', calcParlay);
+    el.addEventListener('change', calcParlay);
+  });
+
+  updateLegUI(d);
+  return d;
+}
+
+function updateLegUI(card){
+  const type = card.querySelector('.leg-type').value;
+  const bt = BET_TYPES.find(t=>t.value===type);
+  const sideWrap = card.querySelector('.leg-side-wrap');
+  const sideLabel = card.querySelector('.leg-side-label');
+  const sideEl = card.querySelector('.leg-side');
+  const lineWrap = card.querySelector('.leg-line-wrap');
+
+  // Ẩn/hiện mốc
+  lineWrap.style.visibility = bt.needLine ? 'visible' : 'hidden';
+
+  // Cập nhật side options
+  const optHome  = sideEl.querySelector('option[value=home]');
+  const optAway  = sideEl.querySelector('option[value=away]');
+  const optOver  = sideEl.querySelector('option[value=over]');
+  const optUnder = sideEl.querySelector('option[value=under]');
+
+  if(type==='total'||type==='cornerTotal'||type==='cardTotal'){
+    sideLabel.textContent = 'Tài / Xỉu';
+    optHome.style.display='none'; optAway.style.display='none';
+    optOver.style.display=''; optUnder.style.display='';
+    if(!['over','under'].includes(sideEl.value)) sideEl.value='over';
+  } else if(type==='onexTwo'){
+    sideLabel.textContent = 'Khách chọn';
+    optHome.style.display=''; optAway.style.display='';
+    optOver.style.display='none'; optUnder.style.display='none';
+    // Thêm option Draw nếu chưa có
+    if(!sideEl.querySelector('option[value=draw]')){
+      const opt=document.createElement('option');
+      opt.value='draw'; opt.textContent='Hòa';
+      sideEl.appendChild(opt);
+    }
+    if(!['home','away','draw'].includes(sideEl.value)) sideEl.value='home';
+  } else {
+    sideLabel.textContent = 'Đội chấp';
+    optHome.style.display=''; optAway.style.display='';
+    optOver.style.display='none'; optUnder.style.display='none';
+    const optDraw = sideEl.querySelector('option[value=draw]');
+    if(optDraw) optDraw.style.display='none';
+    if(!['home','away'].includes(sideEl.value)) sideEl.value='home';
+  }
+}
+
+function reindex(){
+  document.querySelectorAll('.parlay-leg-card').forEach((el,i)=>{
+    el.dataset.idx=i;
+    el.querySelector('.parlay-leg-num').textContent=i+1;
+    el.querySelectorAll('span').forEach(s=>{
+      if(s.textContent.match(/^Nhánh \d+$/)) s.textContent=`Nhánh ${i+1}`;
+    });
+  });
+}
+
+function getLegsData(){
+  return Array.from(document.querySelectorAll('.parlay-leg-card')).map(card=>({
+    homeTeam:  card.querySelector('.leg-home').value.trim()||'Đội nhà',
+    awayTeam:  card.querySelector('.leg-away').value.trim()||'Đội khách',
+    betType:   card.querySelector('.leg-type').value,
+    side:      card.querySelector('.leg-side').value,
+    period:    card.querySelector('.leg-period').value,
+    line:      card.querySelector('.leg-line').value,
+    score:     `${card.querySelector('.leg-home-score').value}-${card.querySelector('.leg-away-score').value}`,
+    odds:      card.querySelector('.leg-odds').value,
+    _card:     card,
+  }));
+}
+
+// ── Cập nhật badge từng nhánh ────────────────────────
+function updateLegBadges(legs){
+  legs.forEach(leg=>{
+    const res = calcLegResult(leg);
+    const badge = leg._card.querySelector('.leg-result-badge');
+    const desc  = leg._card.querySelector('.leg-result-desc');
+    if(!res){
+      badge.className='leg-result-badge parlay-badge parlay-badge-push';
+      badge.textContent='--';
+      desc.textContent='Nhập đủ thông tin';
+      return;
+    }
+    badge.className=`leg-result-badge parlay-badge ${badgeClass(res.outcome)}`;
+    badge.textContent=`${outcomeLabel(res.outcome)} ×${fmt(res.effOdds)}`;
+    desc.textContent=res.desc;
+  });
+}
+
+// ── Tính toán chính ──────────────────────────────────
+function calcParlay(){
+  const stake = Math.max(0, parseFloat(stakeInput.value)||0);
+  const legs  = getLegsData();
+  stakeNote.textContent = stake;
+  updateLegBadges(legs);
+
+  const results = legs.map(l=>calcLegResult(l));
+  if(results.some(r=>r===null)){
+    pointsEl.textContent='--';
+    resultLabelEl.textContent='--';
+    return;
+  }
+
+  let allCombos=[], totalStake=0, totalReturn=0, winCount=0;
+  const steps=[];
+
+  if(mode==='straight'){
+    allCombos=[legs.map((_,i)=>i)];
+  } else {
+    const idx=legs.map((_,i)=>i);
+    for(let sz=2;sz<=legs.length;sz++)
+      getCombos(idx,sz).forEach(c=>allCombos.push(c));
+  }
+
+  comboCountEl.textContent = allCombos.length;
+  totalStake = stake * allCombos.length;
+
+  allCombos.forEach((combo,ci)=>{
+    let mult=1, lost=false;
+    const comboResults = combo.map(i=>results[i]);
+    const comboLegs    = combo.map(i=>legs[i]);
+
+    comboResults.forEach(r=>{
+      if(r.effOdds===0){ lost=true; }
+      else { mult *= r.effOdds; }
+    });
+
+    const ret = lost ? 0 : Math.round(stake*mult*100)/100;
+    const net = Math.round((ret-stake)*100)/100;
+    totalReturn += ret;
+    if(net>0) winCount++;
+
+    const names = comboLegs.map(l=>`${l.homeTeam} vs ${l.awayTeam}`).join(' + ');
+    const oddsStr = comboResults.map((r,i)=>`[N${combo[i]+1}]×${fmt(r.effOdds)}`).join(' × ');
+    const cls = net>0?'combo-win':net<0?'combo-lose':'combo-push';
+    steps.push(`<li class="combo-item ${cls}">
+      <span>${names}</span>
+      <span>${oddsStr} → ${net>=0?'+':''}${fmt(net)} điểm</span>
+    </li>`);
+  });
+
+  const totalNet = Math.round((totalReturn-totalStake)*100)/100;
+  const isWin  = totalNet>0;
+  const isPush = totalNet===0;
+
+  resultLabelEl.textContent = isWin?'Thắng':isPush?'Hòa':'Thua';
+  resultLabelEl.className   = isWin?'':isPush?'push':'loss';
+  pointsEl.textContent      = `${isWin?'+':''}${fmt(totalNet)} điểm`;
+  typeLabelEl.textContent   = mode==='straight'?'Xiên thẳng':'Xiên tổng hợp';
+  winCombosEl.textContent   = `${winCount} / ${allCombos.length} tổ hợp`;
+  totalStakeEl.textContent  = `${fmt(totalStake)} điểm`;
+  netWinEl.textContent      = `${(isWin?'+':'')}${fmt(totalNet)} điểm`;
+  stepsEl.innerHTML         = steps.join('');
+}
+
+// ── Init ─────────────────────────────────────────────
+function initLegs(n){
+  legsContainer.innerHTML='';
+  for(let i=0;i<n;i++) legsContainer.appendChild(createLeg(i));
+  calcParlay();
+}
+
+addBtn.addEventListener('click',()=>{
+  const n=document.querySelectorAll('.parlay-leg-card').length;
+  if(n>=8) return;
+  legsContainer.appendChild(createLeg(n));
+  calcParlay();
+});
+
+stakeInput.addEventListener('input',calcParlay);
+
+btnStraight.addEventListener('click',()=>{
+  mode='straight';
+  btnStraight.classList.add('active');
+  btnSystem.classList.remove('active');
+  systemNote.classList.add('hidden');
+  calcParlay();
+});
+
+btnSystem.addEventListener('click',()=>{
+  mode='system';
+  btnSystem.classList.add('active');
+  btnStraight.classList.remove('active');
+  systemNote.classList.remove('hidden');
+  calcParlay();
+});
+
+initLegs(2);
+
 })();
 
 (function() {
