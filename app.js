@@ -1214,14 +1214,22 @@ function calcLegResult(leg){
     // Cược chấp: đội side chấp (-line)
     // Nếu side=home: home - line vs away
     // Nếu side=away: away - line vs home
-    const sideScore = leg.side==='home' ? home : away;
-    const otherScore = leg.side==='home' ? away : home;
-    const margin = sideScore - otherScore - line;
+    // Đội chấp trừ line, đội được chấp cộng line
+    // pick = đội khách đặt
+    const giveScore = leg.side==='home' ? home : away;
+    const receiveScore = leg.side==='home' ? away : home;
+    const adjustedGive = giveScore - line;
+    // Nếu khách đặt đội chấp: margin = adjustedGive - receiveScore
+    // Nếu khách đặt đội được chấp: margin = receiveScore - adjustedGive  
+    const margin = leg.pick===leg.side 
+      ? adjustedGive - receiveScore 
+      : receiveScore - adjustedGive;
     // Split nếu 0.25/0.75
     const parts = splitLine(margin);
     outcome = summarizeOutcome(parts.map(p=>evalMargin(p)));
     const sideName = leg.side==='home'?leg.homeTeam:leg.awayTeam;
-    desc = `${sideName} chấp ${line} — cách biệt ${sideScore}-${otherScore} → ${outcomeLabel(outcome)}`;
+    const pickName = leg.pick==='home'?leg.homeTeam:leg.awayTeam;
+    desc = `${sideName} chấp ${line} — khách đặt ${pickName} — ${home}-${away} → ${outcomeLabel(outcome)}`;
   }
   else if(type==='total'||type==='cornerTotal'||type==='cardTotal'){
     // Tài/xỉu: side = 'over'|'under'
@@ -1306,7 +1314,7 @@ function createLeg(idx){
 
     <hr class="parlay-sep">
 
-    <div class="parlay-grid4">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
       <label style="margin:0;">
         <span>Loại cược</span>
         <select class="leg-type">
@@ -1441,6 +1449,7 @@ function getLegsData(){
     awayTeam:  card.querySelector('.leg-away').value.trim()||'Đội khách',
     betType:   card.querySelector('.leg-type').value,
     side:      card.querySelector('.leg-side').value,
+    pick:      card.querySelector('.leg-pick').value,
     period:    card.querySelector('.leg-period').value,
     line:      card.querySelector('.leg-line').value,
     score:     `${card.querySelector('.leg-home-score').value}-${card.querySelector('.leg-away-score').value}`,
