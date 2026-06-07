@@ -1172,7 +1172,9 @@ const stepsEl        = document.querySelector('#parlaySteps');
 let mode = 'straight'; // 'straight' | 'system'
 
 // ── Helpers ──────────────────────────────────────────
-function fmt(v){ return numberFormatter.format(Math.round(v*100)/100); }
+function fmt(v){ 
+  return numberFormatter.format(Math.round(v*10000)/10000); 
+}
 
 function getCombos(arr, k){
   if(k===1) return arr.map(x=>[x]);
