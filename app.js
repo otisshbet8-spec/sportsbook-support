@@ -1393,15 +1393,13 @@ function createLeg(idx){
 function updateLegUI(card){
   const type = card.querySelector('.leg-type').value;
   const bt = BET_TYPES.find(t=>t.value===type);
-  const sideWrap = card.querySelector('.leg-side-wrap');
   const sideLabel = card.querySelector('.leg-side-label');
   const sideEl = card.querySelector('.leg-side');
   const lineWrap = card.querySelector('.leg-line-wrap');
+  const pickWrap = card.querySelector('.leg-pick-wrap');
 
-  // Ẩn/hiện mốc
   lineWrap.style.visibility = bt.needLine ? 'visible' : 'hidden';
 
-  // Cập nhật side options
   const optHome  = sideEl.querySelector('option[value=home]');
   const optAway  = sideEl.querySelector('option[value=away]');
   const optOver  = sideEl.querySelector('option[value=over]');
@@ -1412,24 +1410,27 @@ function updateLegUI(card){
     optHome.style.display='none'; optAway.style.display='none';
     optOver.style.display=''; optUnder.style.display='';
     if(!['over','under'].includes(sideEl.value)) sideEl.value='over';
+    pickWrap.style.display='none'; // ẩn khách đặt đội
   } else if(type==='onexTwo'){
     sideLabel.textContent = 'Khách chọn';
     optHome.style.display=''; optAway.style.display='';
     optOver.style.display='none'; optUnder.style.display='none';
-    // Thêm option Draw nếu chưa có
     if(!sideEl.querySelector('option[value=draw]')){
       const opt=document.createElement('option');
       opt.value='draw'; opt.textContent='Hòa';
       sideEl.appendChild(opt);
     }
     if(!['home','away','draw'].includes(sideEl.value)) sideEl.value='home';
+    pickWrap.style.display='none'; // ẩn khách đặt đội
   } else {
+    // Cược chấp
     sideLabel.textContent = 'Đội chấp';
     optHome.style.display=''; optAway.style.display='';
     optOver.style.display='none'; optUnder.style.display='none';
     const optDraw = sideEl.querySelector('option[value=draw]');
     if(optDraw) optDraw.style.display='none';
     if(!['home','away'].includes(sideEl.value)) sideEl.value='home';
+    pickWrap.style.display=''; // hiện khách đặt đội
   }
 }
 
