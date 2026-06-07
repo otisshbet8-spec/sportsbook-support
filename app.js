@@ -1313,13 +1313,20 @@ function createLeg(idx){
           ${BET_TYPES.map(t=>`<option value="${t.value}">${t.label}</option>`).join('')}
         </select>
       </label>
-      <label style="margin:0;" class="leg-side-wrap">
+       <label style="margin:0;" class="leg-side-wrap">
         <span class="leg-side-label">Đội chấp</span>
         <select class="leg-side">
           <option value="home">Đội nhà</option>
           <option value="away">Đội khách</option>
           <option value="over" class="opt-over" style="display:none">Tài</option>
           <option value="under" class="opt-under" style="display:none">Xỉu</option>
+        </select>
+      </label>
+      <label style="margin:0;" class="leg-pick-wrap">
+        <span>Khách đặt đội</span>
+        <select class="leg-pick">
+          <option value="home">Đội nhà</option>
+          <option value="away">Đội khách</option>
         </select>
       </label>
       <label style="margin:0;">
