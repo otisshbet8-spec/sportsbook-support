@@ -1220,12 +1220,12 @@ function calcLegResult(leg){
     const receiveScore = leg.side==='home' ? away : home;
     let margin;
     if(leg.pick === leg.side){
-      // Khách đặt đội chấp: thắng khi đội chấp - line > đội được chấp
-      margin = giveScore - line - receiveScore;
-    } else {
-      // Khách đặt đội được chấp: thắng khi đội được chấp > đội chấp - line
-      margin = receiveScore - (giveScore - line);
-    }
+  // Khách đặt đội chấp → đội chấp phải thắng cách biệt hơn line
+  margin = giveScore - receiveScore - line;
+} else {
+  // Khách đặt đội được chấp → đội được chấp cộng line
+  margin = receiveScore + line - giveScore;
+}
     // Split nếu 0.25/0.75
     const parts = splitLine(margin);
     outcome = summarizeOutcome(parts.map(p=>evalMargin(p)));
