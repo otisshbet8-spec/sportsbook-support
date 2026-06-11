@@ -1330,6 +1330,12 @@ function createLeg(idx){
           ${BET_TYPES.map(t=>`<option value="${t.value}">${t.label}</option>`).join('')}
         </select>
       </label>
+      <label style="margin:0;">
+        <span>Hiệp</span>
+        <select class="leg-period">
+          ${PERIODS.map(p=>`<option value="${p}">${p}</option>`).join('')}
+        </select>
+      </label>
       <label style="margin:0;" class="leg-side-wrap">
         <span class="leg-side-label">Đội chấp</span>
         <select class="leg-side">
