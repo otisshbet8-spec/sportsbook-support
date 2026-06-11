@@ -1502,8 +1502,10 @@ function createLeg(idx){
 
 updateLegUI(d);
   if(window.initComet){
-    d.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
-      .forEach(el=>window.initComet(el));
+    requestAnimationFrame(()=>{
+      d.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
+        .forEach(el=>window.initComet(el));
+    });
   }
   return d;
 }
