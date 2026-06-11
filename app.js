@@ -1697,9 +1697,5 @@ btnSystem.addEventListener('click',()=>{
   calcParlay();
 });
 
-initLegs(2);
-
-})();
-
 
 
