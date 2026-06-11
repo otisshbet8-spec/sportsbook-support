@@ -1635,6 +1635,7 @@ initLegs(2);
   }
 
   window.initComet = function(el) {
+    if(el.closest('.input-comet-wrap')) return;
     const wrap = document.createElement('div');
     wrap.className = 'input-comet-wrap';
     el.parentNode.insertBefore(wrap, el);
