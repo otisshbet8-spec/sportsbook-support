@@ -1296,7 +1296,6 @@ function createLeg(idx){
 
   d.innerHTML = `
     <div class="parlay-leg-header">
-      <div class="parlay-leg-header">
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="parlay-leg-num">${idx+1}</div>
         <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">Nhánh ${idx+1}</span>
