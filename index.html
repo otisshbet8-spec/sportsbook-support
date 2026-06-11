@@ -76,26 +76,15 @@
                 </label>
               </div>
 
-              <fieldset class="segmented compact-segmented timing-fields" id="timingFields" aria-label="Thời điểm cược">
-                <legend>Thời điểm cược</legend>
+              <div class="score-grid hidden" id="timingFields" style="padding:12px 14px;border-radius:8px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);">
+                <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:#c9a84c;text-transform:uppercase;margin-bottom:8px;">Tỷ số lúc đặt cược — để 0-0 nếu trước trận</div>
                 <label>
-                  <input type="radio" name="betTiming" value="prematch" checked />
-                  <span>Trước trận</span>
+                  <span style="color:#c9a84c;">Tỷ số đội nhà lúc đặt</span>
+                  <input id="startHomeScore" type="number" min="0" step="1" value="0" inputmode="numeric" style="text-align:center;"/>
                 </label>
                 <label>
-                  <input type="radio" name="betTiming" value="live" />
-                  <span>Live</span>
-                </label>
-              </fieldset>
-
-              <div class="score-grid live-start hidden" id="liveStartFields">
-                <label>
-                  <span>Tỷ số đội nhà lúc đặt</span>
-                  <input id="startHomeScore" type="number" min="0" step="1" value="0" inputmode="numeric" />
-                </label>
-                <label>
-                  <span>Tỷ số đội khách lúc đặt</span>
-                  <input id="startAwayScore" type="number" min="0" step="1" value="0" inputmode="numeric" />
+                  <span style="color:#c9a84c;">Tỷ số đội khách lúc đặt</span>
+                  <input id="startAwayScore" type="number" min="0" step="1" value="0" inputmode="numeric" style="text-align:center;"/>
                 </label>
               </div>
 
