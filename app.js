@@ -1697,6 +1697,9 @@ btnSystem.addEventListener('click',()=>{
   calcParlay();
 });
 
-.forEach(el=>initComet(el));
+initLegs(2);
+
 })();
+
+
 
