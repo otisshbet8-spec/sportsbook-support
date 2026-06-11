@@ -1405,6 +1405,10 @@ function createLeg(idx){
   });
 
 updateLegUI(d);
+  if(window.initComet){
+    d.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
+      .forEach(el=>window.initComet(el));
+  }
   return d;
 }
 
@@ -1630,7 +1634,7 @@ initLegs(2);
     const a=Math.PI+p/r;return{x:r+Math.cos(a)*r,y:r+Math.sin(a)*r};
   }
 
-  function initComet(el) {
+  window.initComet = function(el) {
     const wrap = document.createElement('div');
     wrap.className = 'input-comet-wrap';
     el.parentNode.insertBefore(wrap, el);
@@ -1723,8 +1727,6 @@ initLegs(2);
     window.addEventListener('resize',resize);
   }
 
-  document.addEventListener('DOMContentLoaded',()=>{
-        document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
-      .forEach(el=>initComet(el));
-  });
+  document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
+    .forEach(el=>initComet(el));
 })();
