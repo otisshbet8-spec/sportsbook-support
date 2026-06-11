@@ -1345,12 +1345,6 @@ function createLeg(idx){
           <option value="under" class="opt-under" style="display:none">Xỉu</option>
         </select>
       </label>
-      <label style="margin:0;">
-        <span>Hiệp</span>
-        <select class="leg-period">
-          ${PERIODS.map(p=>`<option value="${p}">${p}</option>`).join('')}
-        </select>
-      </label>
       <label style="margin:0;" class="leg-line-wrap">
         <span>Mốc chấp / tài xỉu</span>
         <input type="number" class="leg-line" step="0.25" value="0.75" inputmode="decimal"/>
