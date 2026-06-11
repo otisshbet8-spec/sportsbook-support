@@ -479,6 +479,13 @@ select {
   padding: 0 15px;
 }
 
+.parlay-leg-card input,
+.parlay-leg-card select {
+  height: 36px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
 select {
   cursor: pointer;
 }
@@ -978,23 +985,14 @@ textarea:focus {
   cursor: pointer;
 }
 .parlay-leg-del:hover { color: var(--red); }
-.parlay-grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 10px;
-}
+
 .parlay-grid4 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 10px;
   margin-bottom: 10px;
 }
-.parlay-score-grid {
-  display: grid;
-  grid-template-columns: 1fr 24px 1fr 1fr;
-  gap: 10px;
-  align-items: start;
+
 }
 .parlay-sep {
   border: none;
