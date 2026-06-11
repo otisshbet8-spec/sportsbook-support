@@ -1173,7 +1173,8 @@ let mode = 'straight'; // 'straight' | 'system'
 
 // ── Helpers ──────────────────────────────────────────
 function fmt(v){ 
-  return numberFormatter.format(Math.round(v*10000)/10000); 
+  const rounded = Math.round(v*10000)/10000;
+  return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 4 }).format(rounded);
 }
 
 function getCombos(arr, k){
