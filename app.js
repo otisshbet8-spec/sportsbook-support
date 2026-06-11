@@ -1524,9 +1524,9 @@ function calcParlay(){
     const names = combo.map(i=>`Nhánh ${i+1}`).join(' + ');
     const oddsStr = comboResults.map((r,i)=>`${fmt(stake)}×${fmt(r.effOdds)}`).join(' × ');
     const cls = net>0?'combo-win':net<0?'combo-lose':'combo-push';
-    steps.push(`<li class="combo-item ${cls}">
-      <span>${names}</span>
-      <span>${oddsStr} → ${net>=0?'+':''}${fmt(net)} điểm</span>
+    steps.push(`<li class="combo-item ${cls}" style="flex-direction:row;flex-wrap:wrap;gap:4px;">
+      <span style="white-space:nowrap;">${names}:</span>
+      <span style="white-space:nowrap;">${oddsStr} → ${net>=0?'+':''}${fmt(net)} điểm</span>
     </li>`);
   });
 
