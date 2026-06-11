@@ -1410,6 +1410,7 @@ function updateLegUI(card){
   const sideEl = card.querySelector('.leg-side');
   const lineWrap = card.querySelector('.leg-line-wrap');
   const pickWrap = card.querySelector('.leg-pick-wrap');
+  const liveWrap = card.querySelector('.leg-live-wrap');
 
   lineWrap.style.visibility = bt.needLine ? 'visible' : 'hidden';
 
@@ -1423,7 +1424,8 @@ function updateLegUI(card){
     optHome.style.display='none'; optAway.style.display='none';
     optOver.style.display=''; optUnder.style.display='';
     if(!['over','under'].includes(sideEl.value)) sideEl.value='over';
-    pickWrap.style.display='none'; // ẩn khách đặt đội
+    pickWrap.style.display='none';
+    if(liveWrap) liveWrap.style.display='none';
   } else if(type==='onexTwo'){
     sideLabel.textContent = 'Khách chọn';
     optHome.style.display=''; optAway.style.display='';
@@ -1434,24 +1436,19 @@ function updateLegUI(card){
       sideEl.appendChild(opt);
     }
     if(!['home','away','draw'].includes(sideEl.value)) sideEl.value='home';
-    pickWrap.style.display='none'; // ẩn khách đặt đội
+    pickWrap.style.display='none';
+    if(liveWrap) liveWrap.style.display='none';
   } else {
-    // Cược chấp
     sideLabel.textContent = 'Đội chấp';
     optHome.style.display=''; optAway.style.display='';
     optOver.style.display='none'; optUnder.style.display='none';
     const optDraw = sideEl.querySelector('option[value=draw]');
     if(optDraw) optDraw.style.display='none';
     if(!['home','away'].includes(sideEl.value)) sideEl.value='home';
-    pickWrap.style.display=''; // hiện khách đặt đội
-    const liveWrap = card.querySelector('.leg-live-wrap');
-  if(liveWrap){
-    const isHandicap = type==='handicap'||type==='cornerHcp'||type==='cardHcp';
-    liveWrap.style.display = isHandicap ? 'grid' : 'none';
+    pickWrap.style.display='';
+    if(liveWrap) liveWrap.style.display='grid';
   }
-  }   
 }
-
 function reindex(){
   document.querySelectorAll('.parlay-leg-card').forEach((el,i)=>{
     el.dataset.idx=i;
