@@ -1405,7 +1405,6 @@ function createLeg(idx){
   });
 
 updateLegUI(d);
-  d.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select').forEach(el=>initComet(el));
   return d;
 }
 
