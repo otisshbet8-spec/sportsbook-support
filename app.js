@@ -1236,7 +1236,7 @@ function calcLegResult(leg){
     const pickName = leg.pick==='home'?leg.homeTeam:leg.awayTeam;
     desc = `${sideName} chấp ${line} — khách đặt ${pickName} — ${home}-${away} → ${outcomeLabel(outcome)}`;
   }
-  else if(type==='total'||type==='cornerTotal'||type==='cardTotal'){  1111111
+  else if(type==='total'||type==='cornerTotal'||type==='cardTotal'){
     // Tài/xỉu: side = 'over'|'under'
     const total = home + away;
     const diff = leg.side==='over' ? total-line : line-total;
