@@ -1449,6 +1449,7 @@ function updateLegUI(card){
     const isHandicap = type==='handicap'||type==='cornerHcp'||type==='cardHcp';
     liveWrap.style.display = isHandicap ? 'grid' : 'none';
   }
+  }   
 }
 
 function reindex(){
