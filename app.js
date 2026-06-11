@@ -522,7 +522,6 @@ function getBetTiming() {
   const startAway = Math.max(0, Math.floor(readNumber(startAwayScoreInput)));
   return (startHome > 0 || startAway > 0) ? "live" : "prematch";
 }
-}
 
 function getEffectiveScores(homeScore, awayScore, startHomeScore, startAwayScore, timing) {
   if (timing !== "live") {
@@ -1036,7 +1035,8 @@ function calculateSettlement() {
   const odds = readNumber(oddsInput);
   const oddsFormat = oddsFormatSelect.value;
   const betType = betTypes.find((type) => type.value === betTypeSelect.value) || betTypes[0];
-  const timing = betType.value === "footballHandicap" ? rawTiming : "prematch";
+  const allowLiveTypes = ['footballHandicap','cornerHandicap','cardHandicap','basketballSpread','tennisHandicap'];
+  const timing = allowLiveTypes.includes(betType.value) ? rawTiming : "prematch";
   const amounts = getWinLoseAmounts(stake, odds, oddsFormat);
   const common = { homeTeam, awayTeam, homeScore, awayScore, startHomeScore, startAwayScore, timing, amounts, stake, odds, oddsFormat, betType };
   const pendingScript = updateReplyState({ ticketName, homeTeam, awayTeam });
