@@ -1217,8 +1217,11 @@ function calcLegResult(leg){
     // Nếu side=away: away - line vs home
     // Đội chấp trừ line, đội được chấp cộng line
     // pick = đội khách đặt
-    const effHome = Math.max(0, home - (leg.startHome||0));
+   const effHome = Math.max(0, home - (leg.startHome||0));
     const effAway = Math.max(0, away - (leg.startAway||0));
+    if((leg.startHome||0) > home || (leg.startAway||0) > away){
+      return {outcome:'push', effOdds:1, desc:'Tỷ số lúc đặt lớn hơn tỷ số cuối — kiểm tra lại'};
+    }
     const giveScore    = leg.side==='home' ? effHome : effAway;
     const receiveScore = leg.side==='home' ? effAway : effHome;
     let margin;
