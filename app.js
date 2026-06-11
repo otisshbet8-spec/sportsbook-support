@@ -1300,23 +1300,30 @@ function createLeg(idx){
         <div class="parlay-leg-num">${idx+1}</div>
         <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">Nhánh ${idx+1}</span>
       </div>
-      <div class="parlay-leg-del" data-action="delete">×</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label class="leg-pick-wrap" style="margin:0;display:flex;align-items:center;gap:6px;">
+          <span style="font-size:11px;color:var(--muted);white-space:nowrap;">Khách đặt:</span>
+          <select class="leg-pick" style="height:26px;font-size:12px;padding:0 6px;border-radius:6px;">
+            <option value="home">Đội nhà</option>
+            <option value="away">Đội khách</option>
+          </select>
+        </label>
+        <div class="parlay-leg-del" data-action="delete">×</div>
+      </div>
     </div>
 
-    <div class="parlay-grid2">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <label style="margin:0;">
         <span>Đội nhà</span>
-        <input type="text" class="leg-home" placeholder="Tên đội nhà" autocomplete="off" style="height:48px;font-size:15px;font-weight:500;"/>
+        <input type="text" class="leg-home" placeholder="Tên đội nhà" autocomplete="off"/>
       </label>
       <label style="margin:0;">
         <span>Đội khách</span>
-        <input type="text" class="leg-away" placeholder="Tên đội khách" autocomplete="off" style="height:48px;font-size:15px;font-weight:500;"/>
+        <input type="text" class="leg-away" placeholder="Tên đội khách" autocomplete="off"/>
       </label>
     </div>
 
-    <hr class="parlay-sep">
-
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
       <label style="margin:0;">
         <span>Loại cược</span>
         <select class="leg-type">
@@ -1332,13 +1339,6 @@ function createLeg(idx){
           <option value="under" class="opt-under" style="display:none">Xỉu</option>
         </select>
       </label>
-      <label style="margin:0;" class="leg-pick-wrap">
-        <span>Khách đặt đội</span>
-        <select class="leg-pick">
-          <option value="home">Đội nhà</option>
-          <option value="away">Đội khách</option>
-        </select>
-      </label>
       <label style="margin:0;">
         <span>Hiệp</span>
         <select class="leg-period">
@@ -1349,23 +1349,21 @@ function createLeg(idx){
         <span>Mốc chấp / tài xỉu</span>
         <input type="number" class="leg-line" step="0.25" value="0.75" inputmode="decimal"/>
       </label>
-    </div>
-
-    <hr class="parlay-sep">
-
-    <div class="parlay-score-grid">
-      <label style="margin:0;">
-        <span>Kết quả đội nhà</span>
-        <input type="number" class="leg-home-score" min="0" step="1" value="0" inputmode="numeric" style="height:52px;font-size:22px;font-weight:700;text-align:center;"/>
-      </label>
-      <div style="display:flex;align-items:center;justify-content:center;padding-top:24px;font-size:18px;color:var(--muted);">—</div>
-      <label style="margin:0;">
-        <span>Kết quả đội khách</span>
-        <input type="number" class="leg-away-score" min="0" step="1" value="0" inputmode="numeric" style="height:52px;font-size:22px;font-weight:700;text-align:center;"/>
-      </label>
       <label style="margin:0;">
         <span>Tỉ lệ Decimal</span>
-        <input type="number" class="leg-odds" step="0.01" min="1.01" value="1.95" inputmode="decimal" style="height:52px;font-size:18px;font-weight:500;"/>
+        <input type="number" class="leg-odds" step="0.01" min="1.01" value="1.95" inputmode="decimal"/>
+      </label>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 32px 1fr;gap:0;max-width:480px;margin:0 auto 8px;">
+      <label style="margin:0;text-align:center;">
+        <span style="text-align:center;">Kết quả đội nhà</span>
+        <input type="number" class="leg-home-score" min="0" step="1" value="0" inputmode="numeric" style="height:40px;font-size:17px;font-weight:700;text-align:center;"/>
+      </label>
+      <div style="display:flex;align-items:center;justify-content:center;padding-top:18px;font-size:18px;color:var(--muted);">—</div>
+      <label style="margin:0;text-align:center;">
+        <span style="text-align:center;">Kết quả đội khách</span>
+        <input type="number" class="leg-away-score" min="0" step="1" value="0" inputmode="numeric" style="height:40px;font-size:17px;font-weight:700;text-align:center;"/>
       </label>
     </div>
 
