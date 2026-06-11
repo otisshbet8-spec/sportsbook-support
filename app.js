@@ -1217,8 +1217,10 @@ function calcLegResult(leg){
     // Nếu side=away: away - line vs home
     // Đội chấp trừ line, đội được chấp cộng line
     // pick = đội khách đặt
-    const giveScore    = leg.side==='home' ? home : away;
-    const receiveScore = leg.side==='home' ? away : home;
+    const effHome = Math.max(0, home - (leg.startHome||0));
+    const effAway = Math.max(0, away - (leg.startAway||0));
+    const giveScore    = leg.side==='home' ? effHome : effAway;
+    const receiveScore = leg.side==='home' ? effAway : effHome;
     let margin;
     if(leg.pick === leg.side){
   // Khách đặt đội chấp → đội chấp phải thắng cách biệt hơn line
@@ -1355,7 +1357,17 @@ function createLeg(idx){
         <input type="number" class="leg-odds" step="0.01" min="1.01" value="1.95" inputmode="decimal"/>
       </label>
     </div>
-
+<div class="leg-live-wrap" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;padding:10px 12px;border-radius:8px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);">
+      <div style="grid-column:1/-1;font-size:11px;font-weight:700;color:#c9a84c;text-transform:uppercase;margin-bottom:4px;">Tỷ số lúc đặt cược (nếu cược live)</div>
+      <label style="margin:0;">
+        <span>Tỷ số nhà lúc đặt</span>
+        <input type="number" class="leg-start-home" min="0" step="1" value="0" inputmode="numeric" style="text-align:center;"/>
+      </label>
+      <label style="margin:0;">
+        <span>Tỷ số khách lúc đặt</span>
+        <input type="number" class="leg-start-away" min="0" step="1" value="0" inputmode="numeric" style="text-align:center;"/>
+      </label>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 32px 1fr;gap:0;max-width:480px;margin:0 auto 8px;">
       <label style="margin:0;text-align:center;">
         <span style="text-align:center;">Kết quả đội nhà</span>
@@ -1432,6 +1444,11 @@ function updateLegUI(card){
     if(optDraw) optDraw.style.display='none';
     if(!['home','away'].includes(sideEl.value)) sideEl.value='home';
     pickWrap.style.display=''; // hiện khách đặt đội
+    const liveWrap = card.querySelector('.leg-live-wrap');
+  if(liveWrap){
+    const isHandicap = type==='handicap'||type==='cornerHcp'||type==='cardHcp';
+    liveWrap.style.display = isHandicap ? 'grid' : 'none';
+  }
   }
 }
 
@@ -1455,6 +1472,8 @@ function getLegsData(){
     period:    card.querySelector('.leg-period').value,
     line:      card.querySelector('.leg-line').value,
     score:     `${card.querySelector('.leg-home-score').value}-${card.querySelector('.leg-away-score').value}`,
+    startHome: parseInt(card.querySelector('.leg-start-home').value)||0,
+    startAway: parseInt(card.querySelector('.leg-start-away').value)||0,
     odds:      card.querySelector('.leg-odds').value,
     _card:     card,
   }));
