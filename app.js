@@ -1371,12 +1371,12 @@ function createLeg(idx){
     <div style="display:grid;grid-template-columns:1fr 32px 1fr;gap:0;max-width:480px;margin:0 auto 8px;">
       <label style="margin:0;text-align:center;">
         <span style="text-align:center;">Kết quả đội nhà</span>
-        <input type="number" class="leg-home-score" min="0" step="1" value="0" inputmode="numeric" style="height:40px;font-size:17px;font-weight:700;text-align:center;"/>
+        <input type="number" class="leg-home-score" min="0" step="1" value="0" inputmode="numeric" style="height:52px;font-size:20px;font-weight:700;text-align:center;"/>
       </label>
       <div style="display:flex;align-items:center;justify-content:center;padding-top:18px;font-size:18px;color:var(--muted);">—</div>
       <label style="margin:0;text-align:center;">
         <span style="text-align:center;">Kết quả đội khách</span>
-        <input type="number" class="leg-away-score" min="0" step="1" value="0" inputmode="numeric" style="height:40px;font-size:17px;font-weight:700;text-align:center;"/>
+        <input type="number" class="leg-away-score" min="0" step="1" value="0" inputmode="numeric" style="height:52px;font-size:20px;font-weight:700;text-align:center;"/>
       </label>
     </div>
 
