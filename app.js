@@ -518,7 +518,10 @@ function getOpponentTeamName(homeTeam, awayTeam) {
 }
 
 function getBetTiming() {
-  return new FormData(form).get("betTiming") || "prematch";
+  const startHome = Math.max(0, Math.floor(readNumber(startHomeScoreInput)));
+  const startAway = Math.max(0, Math.floor(readNumber(startAwayScoreInput)));
+  return (startHome > 0 || startAway > 0) ? "live" : "prematch";
+}
 }
 
 function getEffectiveScores(homeScore, awayScore, startHomeScore, startAwayScore, timing) {
@@ -899,7 +902,7 @@ function updateDependentOptions() {
 function updateMarketFields() {
   const betType = betTypes.find((type) => type.value === betTypeSelect.value) || betTypes[0];
   const timing = getBetTiming();
-  const allowLive = betType.value === "footballHandicap";
+  const allowLive = ['footballHandicap','cornerHandicap','cardHandicap','basketballSpread','tennisHandicap'].includes(betType.value);
   const isScoreMarket = ["footballHandicap", "footballTotal", "oneXTwo", "correctScore", "halfFullTime", "timeBet", "goalBet", "otherFootball"].includes(betType.value);
   const metricLabel = isScoreMarket ? "Tỷ số" : `Số ${betType.unit}`;
   updateDependentOptions();
@@ -913,7 +916,6 @@ function updateMarketFields() {
   });
 
   timingFields.classList.toggle("hidden", !allowLive);
-  liveStartFields.classList.toggle("hidden", !allowLive || timing !== "live");
   matchTeamsFields.classList.toggle("hidden", betType.family === "fast");
   finalScoreFields.classList.toggle("hidden", ["fastMarket", "timeBet", "cardTotal"].includes(betType.value));
   homeScoreLabel.textContent = betType.family === "fast" ? "Thông tin đội nhà" : `${metricLabel} đội nhà cuối`;
