@@ -1236,7 +1236,7 @@ function calcLegResult(leg){
     const pickName = leg.pick==='home'?leg.homeTeam:leg.awayTeam;
     desc = `${sideName} chấp ${line} — khách đặt ${pickName} — ${home}-${away} → ${outcomeLabel(outcome)}`;
   }
-  else if(type==='total'||type==='cornerTotal'||type==='cardTotal'){
+  else if(type==='total'||type==='cornerTotal'||type==='cardTotal'){  1111111
     // Tài/xỉu: side = 'over'|'under'
     const total = home + away;
     const diff = leg.side==='over' ? total-line : line-total;
@@ -1448,7 +1448,6 @@ function updateLegUI(card){
   if(liveWrap){
     const isHandicap = type==='handicap'||type==='cornerHcp'||type==='cardHcp';
     liveWrap.style.display = isHandicap ? 'grid' : 'none';
-  }
   }
 }
 
