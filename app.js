@@ -1696,6 +1696,8 @@ btnSystem.addEventListener('click',()=>{
   systemNote.classList.remove('hidden');
   calcParlay();
 });
+initLegs(2);
 
+})();
 
 
