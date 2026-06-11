@@ -1521,8 +1521,8 @@ function calcParlay(){
     totalReturn += ret;
     if(net>0) winCount++;
 
-    const names = comboLegs.map(l=>`${l.homeTeam} vs ${l.awayTeam}`).join(' + ');
-    const oddsStr = comboResults.map((r,i)=>`[N${combo[i]+1}]×${fmt(r.effOdds)}`).join(' × ');
+    const names = combo.map(i=>`Nhánh ${i+1}`).join(' + ');
+    const oddsStr = comboResults.map((r,i)=>`${fmt(stake)}×${fmt(r.effOdds)}`).join(' × ');
     const cls = net>0?'combo-win':net<0?'combo-lose':'combo-push';
     steps.push(`<li class="combo-item ${cls}">
       <span>${names}</span>
