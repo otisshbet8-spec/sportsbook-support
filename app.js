@@ -1296,9 +1296,16 @@ function createLeg(idx){
 
   d.innerHTML = `
     <div class="parlay-leg-header">
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div class="parlay-leg-header">
+      <div style="display:flex;align-items:center;gap:10px;">
         <div class="parlay-leg-num">${idx+1}</div>
         <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">Nhánh ${idx+1}</span>
+        <div class="leg-pick-wrap" style="margin:0;">
+          <select class="leg-pick" style="height:28px;font-size:12px;padding:0 8px;border-radius:6px;background:var(--surface-strong);color:var(--text);border:1px solid var(--line);cursor:pointer;">
+            <option value="home">Khách đặt: Đội nhà</option>
+            <option value="away">Khách đặt: Đội khách</option>
+          </select>
+        </div>
       </div>
       <div class="parlay-leg-del" data-action="delete">×</div>
     </div>
@@ -1332,13 +1339,7 @@ function createLeg(idx){
           <option value="under" class="opt-under" style="display:none">Xỉu</option>
         </select>
       </label>
-      <label style="margin:0;" class="leg-pick-wrap">
-        <span>Khách đặt đội</span>
-        <select class="leg-pick">
-          <option value="home">Đội nhà</option>
-          <option value="away">Đội khách</option>
-        </select>
-      </label>
+      
       <label style="margin:0;">
         <span>Hiệp</span>
         <select class="leg-period">
