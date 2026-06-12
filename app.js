@@ -1826,6 +1826,7 @@ initLegs(2);
   const ticketRawInput   = document.querySelector('#ticketRawInput');
   const analyzeBtn       = document.querySelector('#analyzeTicketBtn');
   const fillBtn          = document.querySelector('#fillTicketBtn');
+  const clearBtn         = document.querySelector('#clearFormBtn');
   const previewEl        = document.querySelector('#ticketPreview');
   const previewRowsEl    = document.querySelector('#ticketPreviewRows');
   const warningEl        = document.querySelector('#ticketWarning');
@@ -1914,6 +1915,41 @@ initLegs(2);
   }
 
   analyzeBtn.addEventListener('click', () => {
+    const text = ticketRawInput.value.trim();
+    lastResult = parseSabaTicket(text);
+    renderPreview(lastResult);
+  });
+
+ fillBtn.addEventListener('click', () => {
+    if (lastResult) fillFormFromResult(lastResult);
+  });
+
+  function resetForm(){
+    ticketRawInput.value = '';
+    previewEl.classList.add('hidden');
+    warningEl.classList.add('hidden');
+    fillBtn.classList.add('hidden');
+    lastResult = null;
+
+    betTypeSelect.value = betTypes[0].value;
+
+    const formEl = document.querySelector('#betForm');
+    formEl.querySelectorAll('input[type="text"], input[type="number"]').forEach(el => {
+      el.value = '';
+    });
+    formEl.querySelectorAll('select').forEach(el => {
+      if (el.id !== 'betType') el.selectedIndex = 0;
+    });
+
+    updateMarketFields();
+    calculateSettlement();
+  }
+
+  clearBtn.addEventListener('click', resetForm);
+
+})();
+
+analyzeBtn.addEventListener('click', () => {
     const text = ticketRawInput.value.trim();
     lastResult = parseSabaTicket(text);
     renderPreview(lastResult);
