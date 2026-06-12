@@ -53,6 +53,32 @@
           </div>
 
           <div class="tool-layout">
+            <section class="ticket-parser" id="ticketParser">
+              <div class="panel-heading compact" style="margin-bottom:12px;">
+                <div>
+                  <p class="eyebrow">Tự động điền (SABA)</p>
+                  <h2 style="font-size:1rem;">Dán vé cược để phân tích</h2>
+                </div>
+              </div>
+              <textarea id="ticketRawInput" rows="4" placeholder="Dán nội dung vé cược copy từ bảng tại đây..."></textarea>
+              <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+                <button type="button" class="copy-button" id="analyzeTicketBtn">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  Phân tích
+                </button>
+                <button type="button" class="copy-button hidden" id="fillTicketBtn">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                  Điền vào form
+                </button>
+              </div>
+              <div class="ticket-preview hidden" id="ticketPreview">
+                <dl id="ticketPreviewRows"></dl>
+              </div>
+              <div class="ticket-warning hidden" id="ticketWarning">
+                <p class="eyebrow">Cần kiểm tra thêm</p>
+                <ul id="ticketWarningList"></ul>
+              </div>
+            </section>
             <form class="bet-form" id="betForm">
               <div class="input-grid top-fields">
                 <label>
