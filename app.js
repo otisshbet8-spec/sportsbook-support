@@ -1022,7 +1022,34 @@ function updateReplyState({ ticketName, homeTeam, awayTeam }) {
   return isPending ? buildPendingScript(ticketName, pendingReason) : null;
 }
 
+function isFormReady() {
+  const betType = betTypes.find((type) => type.value === betTypeSelect.value) || betTypes[0];
+  const stake = readNumber(stakeInput);
+  const odds = readNumber(oddsInput);
+
+  if (stake <= 0) return false;
+  if (odds === 0) return false;
+  if (betType.family !== "fast" && homeTeamInput.value.trim() === "") return false;
+  if (betType.family !== "fast" && awayTeamInput.value.trim() === "") return false;
+
+  return true;
+}
+
 function calculateSettlement() {
+  if (!isFormReady()) {
+    resultLabel.textContent = "Chưa đủ dữ liệu";
+    resultLabel.classList.remove("loss", "push");
+    pointsOutput.textContent = "--";
+    settlementNote.textContent = "Vui lòng điền đầy đủ thông tin trận đấu, số điểm và tỉ lệ cược để xem kết toán.";
+    selectedBetType.textContent = "--";
+    winAmount.textContent = "--";
+    loseAmount.textContent = "--";
+    renderSettlementSteps([]);
+    validationAlert.classList.add("hidden");
+    scriptOutput.value = "";
+    return;
+  }
+
   const ticketName = cleanText(ticketNameInput.value, "vé cược");
   const homeTeam = cleanText(homeTeamInput.value, "Đội nhà");
   const awayTeam = cleanText(awayTeamInput.value, "Đội khách");
