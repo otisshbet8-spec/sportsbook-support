@@ -1949,14 +1949,4 @@ initLegs(2);
 
 })();
 
-analyzeBtn.addEventListener('click', () => {
-    const text = ticketRawInput.value.trim();
-    lastResult = parseSabaTicket(text);
-    renderPreview(lastResult);
-  });
 
-  fillBtn.addEventListener('click', () => {
-    if (lastResult) fillFormFromResult(lastResult);
-  });
-
-})();
