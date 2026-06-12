@@ -1032,3 +1032,70 @@ textarea:focus {
 .combo-win  { background: rgba(100,200,50,0.08);  color: #97c459; }
 .combo-lose { background: rgba(220,80,80,0.08);   color: var(--red); }
 .combo-push { background: rgba(200,170,70,0.08);  color: var(--amber); }
+
+.ticket-parser {
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid var(--line);
+}
+
+.ticket-preview {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.ticket-preview dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.ticket-preview .ticket-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.ticket-preview .ticket-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ticket-preview .ticket-row dt {
+  color: var(--muted);
+}
+
+.ticket-preview .ticket-row dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+}
+
+.ticket-warning {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+}
+
+.ticket-warning .eyebrow {
+  color: var(--amber);
+  margin: 0 0 8px;
+}
+
+.ticket-warning ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #ffe0a4;
+  font-size: 13px;
+  line-height: 1.6;
+}
