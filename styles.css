@@ -1099,3 +1099,13 @@ textarea:focus {
   font-size: 13px;
   line-height: 1.6;
 }
+
+#clearFormBtn {
+  background: var(--red);
+  color: #ffffff;
+  border-color: var(--red);
+}
+
+#clearFormBtn:hover {
+  background: #c94a4a;
+}
