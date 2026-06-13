@@ -548,6 +548,47 @@
       </div>
     </div>
 
+    <section class="ticket-parser" id="parlayTicketParser">
+      <div class="panel-heading compact" style="margin-bottom:12px;">
+        <div>
+          <p class="eyebrow">Tự động điền (SABA)</p>
+          <h2 style="font-size:1rem;">Dán vé cược để phân tích</h2>
+        </div>
+      </div>
+      <div class="team-grid">
+        <label>
+          <span>Dán vé cược để phân tích</span>
+          <textarea id="parlayTicketRawInput" rows="4" placeholder="Dán nội dung vé cược copy từ bảng tại đây..."></textarea>
+        </label>
+        <label>
+          <span>Tự động điền kết quả tỷ số — dán kết quả để phân tích</span>
+          <textarea id="parlayResultRawInput" rows="4" placeholder="Dán nội dung kết quả tỷ số copy từ bảng tại đây..."></textarea>
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+        <button type="button" class="copy-button" id="analyzeParlayBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          Phân tích
+        </button>
+        <button type="button" class="copy-button hidden" id="fillParlayBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          Điền vào form
+        </button>
+        <button type="button" class="copy-button" id="clearParlayBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          Xóa form
+        </button>
+      </div>
+      <div class="ticket-preview hidden" id="parlayPreview">
+        <p class="eyebrow" id="parlayPreviewTitle">Kết quả phân tích</p>
+        <div id="parlayPreviewGrid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:340px;overflow-y:auto;padding-right:4px;"></div>
+      </div>
+      <div class="ticket-warning hidden" id="parlayWarning">
+        <p class="eyebrow">Cần kiểm tra thêm</p>
+        <ul id="parlayWarningList"></ul>
+      </div>
+    </section>
+    
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
       <div style="display:flex;gap:8px;">
         <button type="button" id="parlayModeStraight" class="parlay-mode-btn active">Xiên thẳng</button>
