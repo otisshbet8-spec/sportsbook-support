@@ -1949,4 +1949,305 @@ initLegs(2);
 
 })();
 
+(function(){
 
+  // ── Parser vé xiên SABA ─────────────────────────
+
+  function isSabaTicketParlay(text){ return text.includes('SABA') || text.includes('Diamond'); }
+
+  function parseLegSelectionLine(line){
+    const m = line.match(/^(Tài|Xỉu)\s*([\d.]+)\s*@\s*([\d.]+)\s*$/i);
+    if (!m) return null;
+    return {
+      pick: m[1].toLowerCase().includes('tài') ? 'over' : 'under',
+      line: parseFloat(m[2]),
+      odds: parseFloat(m[3]),
+    };
+  }
+
+  function parseLegBetTypeLine(line){
+    const m = line.match(/^(Hiệp 1|Hiệp 2|Toàn trận|Thêm giờ)\s*-\s*(.+)$/i);
+    if (!m) return null;
+    const period = m[1];
+    const typeText = m[2].trim();
+    let family = 'unknown';
+    if (/cược chấp/i.test(typeText)) family = 'handicap';
+    else if (/tài.?x[ỉi]u/i.test(typeText)) family = 'total';
+    return { period, family, rawType: typeText };
+  }
+
+  function parseLegMatchLine(line){
+    const m = line.match(/^(.+?)\s*-\s*vs\s*-\s*(.+)$/i);
+    if (!m) return null;
+    const cleanName = s => s.replace(/Tổng Số Thẻ Phạt/i, '').trim();
+    return { homeTeam: cleanName(m[1]), awayTeam: cleanName(m[2]) };
+  }
+
+  function parseSabaParlayTicket(rawText){
+    const warnings = [];
+    if (!isSabaTicketParlay(rawText)) return { ok:false, reason:'NOT_SABA' };
+
+    let body = rawText;
+    const tsMatch = rawText.match(/\d{1,2}:\d{2}(?::\d{2})?\s*(AM|PM)\s*/i);
+    if (tsMatch) body = rawText.slice(tsMatch.index + tsMatch[0].length);
+
+    const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
+
+    let parlayMode = 'straight';
+    let comboInfo = null;
+    for (const line of lines){
+      const comboMatch = line.match(/^(\d+)-Kết hợp/i);
+      if (comboMatch){
+        parlayMode = 'system';
+        comboInfo = parseInt(comboMatch[1]);
+        break;
+      }
+    }
+
+    const legs = [];
+    let i = 0;
+    while (i < lines.length){
+      const sel = parseLegSelectionLine(lines[i]);
+      if (sel){
+        const betTypeInfo = parseLegBetTypeLine(lines[i+1] || '');
+        const matchInfo = parseLegMatchLine(lines[i+2] || '');
+
+        if (betTypeInfo && matchInfo){
+          let resultText = null;
+          for (let j = i+3; j < Math.min(i+7, lines.length); j++){
+            if (/^(Thắng|Hòa|Thua)$/i.test(lines[j])){
+              resultText = lines[j];
+              break;
+            }
+            if (parseLegSelectionLine(lines[j])) break;
+          }
+
+          legs.push({
+            homeTeam: matchInfo.homeTeam,
+            awayTeam: matchInfo.awayTeam,
+            betFamily: betTypeInfo.family,
+            period: betTypeInfo.period,
+            pick: sel.pick,
+            line: sel.line,
+            odds: sel.odds,
+            legResultText: resultText,
+            homeScore: null,
+            awayScore: null,
+            resultMatched: false,
+          });
+        }
+        i++;
+        continue;
+      }
+      i++;
+    }
+
+    if (legs.length === 0){
+      warnings.push('Không tách được nhánh nào từ vé cược — vui lòng kiểm tra định dạng.');
+    }
+
+    warnings.push('Vui lòng tự xác định "Trạng thái kèo" (nếu có nhánh chấp) dựa trên kèo gốc lúc đặt cược.');
+    warnings.push('Nếu chưa dán kết quả, vui lòng tự nhập tỷ số/số thẻ thật cho từng nhánh.');
+
+    return { ok:true, parlayMode, comboInfo, legs, warnings };
+  }
+
+  // ── Parser kết quả tỷ số SABA ───────────────────
+
+  function parseResultLine(line){
+    let cleaned = line.replace(/^\d{1,2}:\d{2}(?::\d{2})?\s*(AM|PM)\s*/i, '').trim();
+    const m = cleaned.match(/^(.+?)\s+Tổng Số Thẻ Phạt\s*[\t ]+(\d+)[\t ]+(\d+)\s*$/i);
+    if (!m) return null;
+    return {
+      teamName: m[1].trim(),
+      halfScore: parseInt(m[2]),
+      fullScore: parseInt(m[3]),
+    };
+  }
+
+  function parseSabaResultText(rawText){
+    if (!rawText.trim()) return [];
+    const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+    const entries = [];
+    for (const line of lines){
+      const r = parseResultLine(line);
+      if (r) entries.push(r);
+    }
+    return entries;
+  }
+
+  function normalizeTeamName(s){
+    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, 'and').trim();
+  }
+
+  function findResultForTeam(entries, teamName){
+    const target = normalizeTeamName(teamName);
+    for (const entry of entries){
+      const en = normalizeTeamName(entry.teamName);
+      if (en === target || en.includes(target) || target.includes(en)){
+        return entry;
+      }
+    }
+    return null;
+  }
+
+  function applyResultsToLegs(legs, entries){
+    if (!entries.length) return legs;
+    return legs.map(leg => {
+      const homeEntry = findResultForTeam(entries, leg.homeTeam);
+      const awayEntry = findResultForTeam(entries, leg.awayTeam);
+
+      let homeScore = null, awayScore = null, resultMatched = false;
+      if (homeEntry && awayEntry){
+        const useHalf = leg.period === 'Hiệp 1';
+        homeScore = useHalf ? homeEntry.halfScore : homeEntry.fullScore;
+        awayScore = useHalf ? awayEntry.halfScore : awayEntry.fullScore;
+        resultMatched = true;
+      }
+
+      return { ...leg, homeScore, awayScore, resultMatched };
+    });
+  }
+
+  // ── Map betFamily -> BET_TYPES value của Kèo Xiên ──
+  const PARLAY_BET_TYPE_MAP = {
+    handicap: 'cardHcp',
+    total: 'cardTotal',
+  };
+
+  // ── UI ───────────────────────────────────────────
+  const ticketInput   = document.querySelector('#parlayTicketRawInput');
+  const resultInput   = document.querySelector('#parlayResultRawInput');
+  const analyzeBtn    = document.querySelector('#analyzeParlayBtn');
+  const fillBtn       = document.querySelector('#fillParlayBtn');
+  const clearBtn      = document.querySelector('#clearParlayBtn');
+  const previewEl     = document.querySelector('#parlayPreview');
+  const previewGridEl = document.querySelector('#parlayPreviewGrid');
+  const warningEl     = document.querySelector('#parlayWarning');
+  const warningListEl = document.querySelector('#parlayWarningList');
+
+  const familyLabel = { handicap:'Thẻ phạt - Chấp', total:'Thẻ phạt - Tài/Xỉu', unknown:'Không xác định' };
+
+  let lastParlayResult = null;
+
+  function renderParlayPreview(result){
+    if (!result.ok){
+      previewGridEl.innerHTML = '<div class="parlay-leg-preview-card"><p class="leg-preview-match" style="color:var(--red);">Không nhận diện được định dạng vé SABA — vui lòng điền tay.</p></div>';
+      warningEl.classList.add('hidden');
+      fillBtn.classList.add('hidden');
+      previewEl.classList.remove('hidden');
+      return;
+    }
+
+    document.querySelector('#parlayPreviewTitle').textContent = `Kết quả phân tích — ${result.legs.length} nhánh`;
+
+    previewGridEl.innerHTML = result.legs.map((leg, idx) => {
+      const pickLabel = leg.pick === 'over' ? 'Tài' : 'Xỉu';
+      const resultLine = leg.resultMatched
+        ? `<span class="leg-preview-result-ok"><strong>&#10003;</strong> Kết quả: ${leg.homeScore}-${leg.awayScore}</span>`
+        : `<span class="leg-preview-result-missing">Chưa có kết quả — tự nhập tỷ số</span>`;
+
+      return `
+        <div class="parlay-leg-preview-card">
+          <p class="leg-preview-idx">Nhánh ${idx+1}</p>
+          <p class="leg-preview-match">${leg.homeTeam} vs ${leg.awayTeam}</p>
+          <div class="leg-preview-detail">
+            <span>${familyLabel[leg.betFamily] || '--'}</span>
+            <span>${leg.period} · ${pickLabel} ${numberFormatter.format(leg.line)} @${numberFormatter.format(leg.odds)}</span>
+            ${resultLine}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (result.warnings.length){
+      let warnings = [...result.warnings];
+      if (result.parlayMode === 'system'){
+        warnings.unshift(`Phát hiện "${result.comboInfo}-Kết hợp" — gợi ý chuyển sang chế độ "Xiên tổng hợp" (CSKH có thể tự chọn lại nếu cần).`);
+      }
+      warningListEl.innerHTML = warnings.map(w=>`<li>${w}</li>`).join('');
+      warningEl.classList.remove('hidden');
+    } else {
+      warningEl.classList.add('hidden');
+    }
+
+    previewEl.classList.remove('hidden');
+    fillBtn.classList.remove('hidden');
+  }
+
+  function fillParlayFromResult(result){
+    if (!result.ok || !result.legs.length) return;
+
+    // Gợi ý chuyển mode nếu phát hiện "N-Kết hợp"
+    if (result.parlayMode === 'system' && mode !== 'system'){
+      mode = 'system';
+      btnSystem.classList.add('active');
+      btnStraight.classList.remove('active');
+      systemNote.classList.remove('hidden');
+    }
+
+    // Tạo đúng số nhánh
+    initLegs(result.legs.length);
+
+    const legCards = document.querySelectorAll('.parlay-leg-card');
+
+    result.legs.forEach((leg, idx) => {
+      const card = legCards[idx];
+      if (!card) return;
+
+      card.querySelector('.leg-home').value = leg.homeTeam;
+      card.querySelector('.leg-away').value = leg.awayTeam;
+
+      const typeValue = PARLAY_BET_TYPE_MAP[leg.betFamily];
+      if (typeValue){
+        const typeSelect = card.querySelector('.leg-type');
+        typeSelect.value = typeValue;
+        updateLegUI(card);
+      }
+
+      card.querySelector('.leg-period').value = leg.period;
+      card.querySelector('.leg-side').value = leg.pick === 'over' ? 'over' : 'under';
+      card.querySelector('.leg-line').value = leg.line;
+      card.querySelector('.leg-odds').value = leg.odds;
+
+      if (leg.resultMatched){
+        card.querySelector('.leg-home-score').value = leg.homeScore;
+        card.querySelector('.leg-away-score').value = leg.awayScore;
+      }
+    });
+
+    calcParlay();
+  }
+
+  function resetParlayForm(){
+    ticketInput.value = '';
+    resultInput.value = '';
+    previewEl.classList.add('hidden');
+    warningEl.classList.add('hidden');
+    fillBtn.classList.add('hidden');
+    lastParlayResult = null;
+
+    initLegs(2);
+  }
+
+  analyzeBtn.addEventListener('click', () => {
+    const ticketText = ticketInput.value.trim();
+    const resultText = resultInput.value.trim();
+
+    const parsed = parseSabaParlayTicket(ticketText);
+    if (parsed.ok){
+      const entries = parseSabaResultText(resultText);
+      parsed.legs = applyResultsToLegs(parsed.legs, entries);
+    }
+
+    lastParlayResult = parsed;
+    renderParlayPreview(parsed);
+  });
+
+  fillBtn.addEventListener('click', () => {
+    if (lastParlayResult) fillParlayFromResult(lastParlayResult);
+  });
+
+  clearBtn.addEventListener('click', resetParlayForm);
+
+})();
