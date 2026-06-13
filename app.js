@@ -1832,15 +1832,15 @@ function parseSabaParlayTicket(rawText){
 
 function parseResultLine(line){
   let cleaned = line.replace(/^\d{1,2}:\d{2}(?::\d{2})?\s*(AM|PM)\s*/i, '').trim();
-  const m = cleaned.match(/^(.+?)\s+Tổng Số Thẻ Phạt\s*[\t ]+(\d+)[\t ]+(\d+)\s*$/i);
+  const m = cleaned.match(/^(.+?)\s*[\t ]+(\d+)[\t ]+(\d+)\s*$/);
   if (!m) return null;
   return {
-    teamName: m[1].trim(),
+    teamName: m[1].replace(/Tổng Số Thẻ Phạt/i, '').trim(),
     halfScore: parseInt(m[2]),
     fullScore: parseInt(m[3]),
   };
 }
-
+  
 function parseSabaResultText(rawText){
   if (!rawText.trim()) return [];
   const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
@@ -1853,7 +1853,10 @@ function parseSabaResultText(rawText){
 }
 
 function normalizeTeamName(s){
-  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, 'and').trim();
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/&/g, 'and')
+    .replace(/\s*\([^)]*\)\s*$/g, '')
+    .trim();
 }
 
 function findResultForTeam(entries, teamName){
