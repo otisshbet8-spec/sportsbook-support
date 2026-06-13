@@ -1954,13 +1954,6 @@ function renderParlayPreview(result){
 function fillParlayFromResult(result){
   if (!result.ok || !result.legs.length) return;
 
-  if (result.parlayMode === 'system' && mode !== 'system'){
-    mode = 'system';
-    btnSystem.classList.add('active');
-    btnStraight.classList.remove('active');
-    systemNote.classList.remove('hidden');
-  }
-
   initLegs(result.legs.length);
 
   const legCards = document.querySelectorAll('.parlay-leg-card');
