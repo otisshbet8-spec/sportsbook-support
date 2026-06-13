@@ -1732,12 +1732,14 @@ initLegs(2);
 function isSabaTicketParlay(text){ return text.includes('SABA') || text.includes('Diamond'); }
 
 function parseLegSelectionLine(line){
-  const m = line.match(/^(Tài|Xỉu)\s*([\d.]+)\s*@\s*([\d.]+)\s*$/i);
+  const m = line.match(/^(Tài|Xỉu)\s*([\d.]+)\s*@\s*([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/i);
   if (!m) return null;
   return {
     pick: m[1].toLowerCase().includes('tài') ? 'over' : 'under',
     line: parseFloat(m[2]),
     odds: parseFloat(m[3]),
+    startHome: m[4] !== undefined ? parseInt(m[4]) : 0,
+    startAway: m[5] !== undefined ? parseInt(m[5]) : 0,
   };
 }
 
@@ -1806,6 +1808,8 @@ function parseSabaParlayTicket(rawText){
           pick: sel.pick,
           line: sel.line,
           odds: sel.odds,
+          startHome: sel.startHome,
+          startAway: sel.startAway,
           legResultText: resultText,
           homeScore: null,
           awayScore: null,
