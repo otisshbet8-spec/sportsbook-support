@@ -1951,6 +1951,7 @@ function renderParlayPreview(result){
         <div class="leg-preview-detail">
           <span>${parlayFamilyLabel[leg.betFamily] || '--'}</span>
           <span>${leg.period} · ${pickLabel} ${numberFormatter.format(leg.line)} @${numberFormatter.format(leg.odds)}</span>
+          <span>Tỷ số lúc đặt: ${leg.startHome}-${leg.startAway}</span>
           ${resultLine}
         </div>
       </div>
@@ -1997,6 +1998,8 @@ function fillParlayFromResult(result){
     card.querySelector('.leg-side').value = leg.pick === 'over' ? 'over' : 'under';
     card.querySelector('.leg-line').value = leg.line;
     card.querySelector('.leg-odds').value = leg.odds;
+    card.querySelector('.leg-start-home').value = leg.startHome;
+    card.querySelector('.leg-start-away').value = leg.startAway;
 
     if (leg.resultMatched){
       card.querySelector('.leg-home-score').value = leg.homeScore;
