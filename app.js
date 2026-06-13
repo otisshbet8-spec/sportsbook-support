@@ -1744,13 +1744,27 @@ function parseLegSelectionLine(line){
 }
 
 function parseLegBetTypeLine(line){
-  const m = line.match(/^(Hiệp 1|Hiệp 2|Toàn trận|Thêm giờ)\s*-\s*(.+)$/i);
-  if (!m) return null;
-  const period = m[1];
-  const typeText = m[2].trim();
+  let period = 'Toàn trận';
+  let typeText = line;
+
+  const prefixMatch = line.match(/^(Hiệp 1|Hiệp 2|Toàn trận|Thêm giờ)\s*-\s*(.+)$/i);
+  if (prefixMatch){
+    period = prefixMatch[1];
+    typeText = prefixMatch[2];
+  } else if (/\b1H\b/i.test(line)){
+    period = 'Hiệp 1';
+    typeText = line.replace(/\b1H\b/i, '').replace(/^\s*-\s*|\s*-\s*$/g, '');
+  } else if (/\b2H\b/i.test(line)){
+    period = 'Hiệp 2';
+    typeText = line.replace(/\b2H\b/i, '').replace(/^\s*-\s*|\s*-\s*$/g, '');
+  }
+
+  typeText = typeText.trim();
   let family = 'unknown';
   if (/cược chấp/i.test(typeText)) family = 'handicap';
   else if (/tài.?x[ỉi]u/i.test(typeText)) family = 'total';
+  if (family === 'unknown') return null;
+
   return { period, family, rawType: typeText };
 }
 
