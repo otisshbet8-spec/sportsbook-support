@@ -1249,11 +1249,12 @@ init();
     else if (/\b1H\b/i.test(betTypeLine)) period = 'Hiệp 1';
     else if (/\b2H\b/i.test(betTypeLine)) period = 'Hiệp 2';
     if (isHcp){
-      if      (typeText.includes('thẻ'))                               betTypeValue = 'cardHandicap';
-      else if (typeText.includes('góc'))                               betTypeValue = 'cornerHandicap';
-      else if (typeText.includes('bóng rổ') || typeText.includes('spread')) betTypeValue = 'basketballSpread';
-      else if (typeText.includes('quần vợt'))                          betTypeValue = 'tennisHandicap';
-      else                                                             betTypeValue = 'footballHandicap';
+      const ctxText = (lines[0] + ' ' + lines[3]).toLowerCase();
+      if      (typeText.includes('thẻ') || ctxText.includes('thẻ phạt'))     betTypeValue = 'cardHandicap';
+      else if (typeText.includes('góc') || ctxText.includes('phạt góc') || ctxText.includes('tổng số góc')) betTypeValue = 'cornerHandicap';
+      else if (typeText.includes('bóng rổ') || typeText.includes('spread'))  betTypeValue = 'basketballSpread';
+      else if (typeText.includes('quần vợt'))                                 betTypeValue = 'tennisHandicap';
+      else                                                                    betTypeValue = 'footballHandicap';
     } else {
       if      (typeText.includes('thẻ') && typeText.includes('chấp')) betTypeValue = 'cardHandicap';
       else if (typeText.includes('thẻ'))                               betTypeValue = 'cardTotal';
@@ -1270,8 +1271,9 @@ init();
     let homeTeam = '', awayTeam = '';
     const vsMatch = (lines[2] || '').match(/^(.+?)\s*-\s*vs\s*-\s*(.+)$/i);
     if (vsMatch){
-      homeTeam = vsMatch[1].replace(/Tổng Số Thẻ Phạt/i,'').trim();
-      awayTeam = vsMatch[2].replace(/Tổng Số Thẻ Phạt/i,'').trim();
+      const TEAM_SUFFIX = /\s*(Tổng Số Thẻ Phạt|Tổng Số Phạt Góc|Tổng Số Góc|HDP)\s*/gi;
+      homeTeam = vsMatch[1].replace(TEAM_SUFFIX, '').trim();
+      awayTeam = vsMatch[2].replace(TEAM_SUFFIX, '').trim();
     } else {
       warnings.push('Không tìm được tên đội — vui lòng điền tay.');
     }
