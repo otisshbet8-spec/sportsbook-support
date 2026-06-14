@@ -1309,7 +1309,15 @@ function getCombos(arr, k){
     getCombos(arr.slice(i+1),k-1).forEach(c=>res.push([arr[i],...c]));
   return res;
 }
-
+  
+function countSystemCombos(n){
+  let total = 0;
+  for (let sz = 2; sz <= n; sz++){
+    total += getCombos(Array.from({length:n}, (_,i)=>i), sz).length;
+  }
+  return total;
+}
+  
 // Tách "A - B" hoặc "A-B" thành {home, away}
 function parseScore(str){
   const m = str.replace(/\s/g,'').match(/^(\d+)[:\-](\d+)$/);
@@ -1796,6 +1804,13 @@ function parseSabaParlayTicket(rawText){
     }
   }
 
+  let rawStake = null;
+  if (lines.length >= 6){
+    const stakeLine = lines[lines.length - 6].replace(/,/g, '');
+    const stakeNum = parseFloat(stakeLine);
+    if (!isNaN(stakeNum)) rawStake = stakeNum;
+  }
+
   const legs = [];
   let i = 0;
   while (i < lines.length){
@@ -1843,7 +1858,7 @@ function parseSabaParlayTicket(rawText){
   warnings.push('Vui lòng tự xác định "Trạng thái kèo" (nếu có nhánh chấp) dựa trên kèo gốc lúc đặt cược.');
   warnings.push('Nếu chưa dán kết quả, vui lòng tự nhập tỷ số/số thẻ thật cho từng nhánh.');
 
-  return { ok:true, parlayMode, comboInfo, legs, warnings };
+  return { ok:true, parlayMode, comboInfo, rawStake, legs, warnings };
 }
 
 // ── Parser kết quả tỷ số SABA ───────────────────
@@ -1975,6 +1990,15 @@ function renderParlayPreview(result){
 
 function fillParlayFromResult(result){
   if (!result.ok || !result.legs.length) return;
+
+  if (typeof result.rawStake === 'number'){
+    if (mode === 'system'){
+      const comboCount = countSystemCombos(result.legs.length);
+      stakeInput.value = comboCount > 0 ? (result.rawStake / comboCount) : result.rawStake;
+    } else {
+      stakeInput.value = result.rawStake;
+    }
+  }
 
   initLegs(result.legs.length);
 
