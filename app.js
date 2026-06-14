@@ -1350,8 +1350,13 @@ init();
     if (totalPeriodSelect)    totalPeriodSelect.value    = t.period;
 
     // Tài/Xỉu pick + mốc
-    if (totalPickSelect)  totalPickSelect.value  = t.pick;
-    if (totalLineInput)   totalLineInput.value   = t.line;
+    // Tài/Xỉu pick + mốc (chỉ điền nếu là loại total)
+    if (t.pick !== 'handicap'){
+      if (totalPickSelect) totalPickSelect.value = t.pick;
+      if (totalLineInput)  totalLineInput.value  = t.line;
+    } else {
+      if (handicapLineInput) handicapLineInput.value = t.line;
+    }
 
     // Tỷ lệ + loại
     if (t.odds)       oddsInput.value       = t.odds;
