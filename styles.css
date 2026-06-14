@@ -1047,18 +1047,20 @@ textarea:focus {
   border-radius: 8px;
   background: var(--surface);
   border: 1px solid var(--line);
+  display: flex;
+  justify-content: center;
 }
 
 .ticket-preview dl {
   display: grid;
   gap: 8px;
   margin: 0;
+  width: fit-content;
+  min-width: 300px;
 }
-
 .ticket-preview .ticket-row {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 40px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--line);
   font-size: 13px;
@@ -1076,7 +1078,6 @@ textarea:focus {
 .ticket-preview .ticket-row dd {
   margin: 0;
   font-weight: 700;
-  text-align: right;
 }
 
 .ticket-warning {
