@@ -1179,9 +1179,9 @@ init();
   const warningEl   = document.querySelector('#ticketWarning');
   const warningList = document.querySelector('#ticketWarningList');
 
-  const ODDS_FORMAT_MAP = {
+ const ODDS_FORMAT_MAP = {
     'MY':'malay','Malay':'malay','Indo':'malay',
-    'HK':'hongkong','Hồng Kông':'hongkong','Hong Kong':'hongkong',
+    'HK':'hongkong','CN':'hongkong','Hồng Kông':'hongkong','Hong Kong':'hongkong',
     'EU':'decimal','Decimal':'decimal',
     'US':'us','American':'us',
   };
@@ -1220,13 +1220,24 @@ init();
     if (tsMatch) body = rawText.slice(tsMatch.index + tsMatch[0].length);
     const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
 
-    // Dòng 0: Tài/Xỉu + mốc + [startHome-startAway]
-    const selMatch = lines[0].match(/^(Tài|Xỉu)\s*([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/i);
-    if (!selMatch) return { ok:false, reason:'NO_SELECTION' };
-    const pick      = selMatch[1].toLowerCase().includes('tài') ? 'over' : 'under';
-    const line      = parseFloat(selMatch[2]);
-    const startHome = selMatch[3] !== undefined ? parseInt(selMatch[3]) : 0;
-    const startAway = selMatch[4] !== undefined ? parseInt(selMatch[4]) : 0;
+    // Dòng 0: Tài/Xỉu hoặc Cược Chấp
+    let pick = '', line = 0, startHome = 0, startAway = 0;
+    const selTotal = lines[0].match(/^(Tài|Xỉu)\s*([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/i);
+    const selHcp   = !selTotal && lines[0].match(/^.+\s+([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/);
+    const isHcp    = !selTotal && selHcp && /chấp/i.test(lines[1] || '');
+    if (selTotal){
+      pick      = selTotal[1].toLowerCase().includes('tài') ? 'over' : 'under';
+      line      = parseFloat(selTotal[2]);
+      startHome = selTotal[3] !== undefined ? parseInt(selTotal[3]) : 0;
+      startAway = selTotal[4] !== undefined ? parseInt(selTotal[4]) : 0;
+    } else if (isHcp){
+      pick      = 'handicap';
+      line      = parseFloat(selHcp[1]);
+      startHome = selHcp[2] !== undefined ? parseInt(selHcp[2]) : 0;
+      startAway = selHcp[3] !== undefined ? parseInt(selHcp[3]) : 0;
+    } else {
+      return { ok:false, reason:'NO_SELECTION' };
+    }
 
     // Dòng 1: loại cược + hiệp
     let betTypeValue = 'footballTotal', period = 'Toàn trận';
@@ -1236,13 +1247,24 @@ init();
     if (periodMatch) period = periodMatch[1];
     else if (/\b1H\b/i.test(betTypeLine)) period = 'Hiệp 1';
     else if (/\b2H\b/i.test(betTypeLine)) period = 'Hiệp 2';
-    if      (typeText.includes('thẻ') && typeText.includes('chấp')) betTypeValue = 'cardHandicap';
-    else if (typeText.includes('thẻ'))                               betTypeValue = 'cardTotal';
-    else if (typeText.includes('góc') && typeText.includes('chấp')) betTypeValue = 'cornerHandicap';
-    else if (typeText.includes('góc'))                               betTypeValue = 'cornerTotal';
-    else if (typeText.includes('chấp'))                              betTypeValue = 'footballHandicap';
-    else                                                             betTypeValue = 'footballTotal';
-
+    if (isHcp){
+      if      (typeText.includes('thẻ'))                               betTypeValue = 'cardHandicap';
+      else if (typeText.includes('góc'))                               betTypeValue = 'cornerHandicap';
+      else if (typeText.includes('bóng rổ') || typeText.includes('spread')) betTypeValue = 'basketballSpread';
+      else if (typeText.includes('quần vợt'))                          betTypeValue = 'tennisHandicap';
+      else                                                             betTypeValue = 'footballHandicap';
+    } else {
+      if      (typeText.includes('thẻ') && typeText.includes('chấp')) betTypeValue = 'cardHandicap';
+      else if (typeText.includes('thẻ'))                               betTypeValue = 'cardTotal';
+      else if (typeText.includes('góc') && typeText.includes('chấp')) betTypeValue = 'cornerHandicap';
+      else if (typeText.includes('góc'))                               betTypeValue = 'cornerTotal';
+      else if (typeText.includes('bóng rổ') && typeText.includes('chấp')) betTypeValue = 'basketballSpread';
+      else if (typeText.includes('bóng rổ'))                           betTypeValue = 'basketballTotal';
+      else if (typeText.includes('quần vợt') && typeText.includes('chấp')) betTypeValue = 'tennisHandicap';
+      else if (typeText.includes('quần vợt'))                          betTypeValue = 'tennisTotal';
+      else if (typeText.includes('chấp'))                              betTypeValue = 'footballHandicap';
+      else                                                             betTypeValue = 'footballTotal';
+    } 
     // Dòng 2: đội nhà - vs - đội khách
     let homeTeam = '', awayTeam = '';
     const vsMatch = (lines[2] || '').match(/^(.+?)\s*-\s*vs\s*-\s*(.+)$/i);
