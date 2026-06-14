@@ -1805,8 +1805,8 @@ function parseSabaParlayTicket(rawText){
   }
 
   let rawStake = null;
-  if (lines.length >= 6){
-    const stakeLine = lines[lines.length - 6].replace(/,/g, '');
+  if (lines.length >= 8){
+    const stakeLine = lines[lines.length - 8].replace(/,/g, '');
     const stakeNum = parseFloat(stakeLine);
     if (!isNaN(stakeNum)) rawStake = stakeNum;
   }
