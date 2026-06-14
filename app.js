@@ -1224,7 +1224,7 @@ init();
     // Dòng 0: Tài/Xỉu hoặc Cược Chấp
     let pick = '', line = 0, startHome = 0, startAway = 0;
     const selTotal = lines[0].match(/^(Tài|Xỉu)\s*([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/i);
-    const selHcp   = !selTotal && lines[0].match(/^.+\s+([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/);
+    const selHcp   = !selTotal && lines[0].match(/^.+\s+(-?[\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/);
     const isHcp    = !selTotal && selHcp && /chấp/i.test(lines[1] || '');
     if (selTotal){
       pick      = selTotal[1].toLowerCase().includes('tài') ? 'over' : 'under';
@@ -1233,7 +1233,7 @@ init();
       startAway = selTotal[4] !== undefined ? parseInt(selTotal[4]) : 0;
     } else if (isHcp){
       pick      = 'handicap';
-      line      = parseFloat(selHcp[1]);
+      line      = Math.abs(parseFloat(selHcp[1]));
       startHome = selHcp[2] !== undefined ? parseInt(selHcp[2]) : 0;
       startAway = selHcp[3] !== undefined ? parseInt(selHcp[3]) : 0;
     } else {
