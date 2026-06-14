@@ -1167,6 +1167,185 @@ tabButtons.forEach((button) => {
 });
 
 init();
+// ── Parser vé đơn SABA (Tab Tính Vé Cược) ──────────────
+(function(){
+  const ticketInput = document.querySelector('#ticketRawInput');
+  const analyzeBtn  = document.querySelector('#analyzeTicketBtn');
+  const fillBtn     = document.querySelector('#fillTicketBtn');
+  const clearBtn    = document.querySelector('#clearFormBtn');
+  const previewEl   = document.querySelector('#ticketPreview');
+  const previewRows = document.querySelector('#ticketPreviewRows');
+  const warningEl   = document.querySelector('#ticketWarning');
+  const warningList = document.querySelector('#ticketWarningList');
+
+  const ODDS_FORMAT_MAP = {
+    'MY':'malay','Malay':'malay','Indo':'malay',
+    'HK':'hongkong','Hồng Kông':'hongkong','Hong Kong':'hongkong',
+    'EU':'decimal','Decimal':'decimal',
+    'US':'us','American':'us',
+  };
+
+  let lastTicket = null;
+
+  function parseSabaTicketSingle(rawText){
+    const warnings = [];
+    if (!rawText.includes('SABA') && !rawText.includes('Diamond'))
+      return { ok:false, reason:'NOT_SABA' };
+
+    let body = rawText;
+    const tsMatch = rawText.match(/\d{1,2}:\d{2}(?::\d{2})?\s*(AM|PM)\s*/i);
+    if (tsMatch) body = rawText.slice(tsMatch.index + tsMatch[0].length);
+    const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
+
+    // Dòng 0: Tài/Xỉu + mốc + [startHome-startAway]
+    const selMatch = lines[0].match(/^(Tài|Xỉu)\s*([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/i);
+    if (!selMatch) return { ok:false, reason:'NO_SELECTION' };
+    const pick      = selMatch[1].toLowerCase().includes('tài') ? 'over' : 'under';
+    const line      = parseFloat(selMatch[2]);
+    const startHome = selMatch[3] !== undefined ? parseInt(selMatch[3]) : 0;
+    const startAway = selMatch[4] !== undefined ? parseInt(selMatch[4]) : 0;
+
+    // Dòng 1: loại cược + hiệp
+    let betTypeValue = 'footballTotal', period = 'Toàn trận';
+    const betTypeLine = lines[1] || '';
+    const periodMatch = betTypeLine.match(/^(Hiệp 1|Hiệp 2|Toàn trận|Thêm giờ)\s*-\s*(.+)$/i);
+    const typeText = periodMatch ? periodMatch[2].trim().toLowerCase() : betTypeLine.toLowerCase();
+    if (periodMatch) period = periodMatch[1];
+    else if (/\b1H\b/i.test(betTypeLine)) period = 'Hiệp 1';
+    else if (/\b2H\b/i.test(betTypeLine)) period = 'Hiệp 2';
+    if      (typeText.includes('thẻ') && typeText.includes('chấp')) betTypeValue = 'cardHandicap';
+    else if (typeText.includes('thẻ'))                               betTypeValue = 'cardTotal';
+    else if (typeText.includes('góc') && typeText.includes('chấp')) betTypeValue = 'cornerHandicap';
+    else if (typeText.includes('góc'))                               betTypeValue = 'cornerTotal';
+    else if (typeText.includes('chấp'))                              betTypeValue = 'footballHandicap';
+    else                                                             betTypeValue = 'footballTotal';
+
+    // Dòng 2: đội nhà - vs - đội khách
+    let homeTeam = '', awayTeam = '';
+    const vsMatch = (lines[2] || '').match(/^(.+?)\s*-\s*vs\s*-\s*(.+)$/i);
+    if (vsMatch){
+      homeTeam = vsMatch[1].replace(/Tổng Số Thẻ Phạt/i,'').trim();
+      awayTeam = vsMatch[2].replace(/Tổng Số Thẻ Phạt/i,'').trim();
+    } else {
+      warnings.push('Không tìm được tên đội — vui lòng điền tay.');
+    }
+
+    // Dòng 5: tỷ lệ | Dòng 6: loại tỷ lệ
+    const odds = lines[5] || '';
+    const oddsFormatRaw = lines[6] || '';
+    let oddsFormat = 'hongkong';
+    for (const [key, val] of Object.entries(ODDS_FORMAT_MAP)){
+      if (oddsFormatRaw.toLowerCase().includes(key.toLowerCase())){ oddsFormat = val; break; }
+    }
+
+    // Tiền cược dòng -8
+    let stake = '';
+    if (lines.length >= 8){
+      const s = parseFloat(lines[lines.length - 8].replace(/,/g,''));
+      if (!isNaN(s) && s > 0) stake = String(s);
+    }
+
+    return { ok:true, pick, line, startHome, startAway, betTypeValue, period, homeTeam, awayTeam, odds, oddsFormat, stake, warnings };
+  }
+
+  function renderPreview(t){
+    if (!t.ok){
+      previewRows.innerHTML = `<div class="ticket-row"><dt>Lỗi</dt><dd style="color:var(--red);">Không nhận diện được vé SABA — vui lòng điền tay.</dd></div>`;
+      previewEl.classList.remove('hidden');
+      fillBtn.classList.add('hidden');
+      warningEl.classList.add('hidden');
+      return;
+    }
+
+    const pickLabel = t.pick === 'over' ? 'Tài' : 'Xỉu';
+    const betTypeLabel = {
+      footballTotal:'Bóng đá - Tài/Xỉu', footballHandicap:'Bóng đá - Cược Chấp',
+      cardTotal:'Thẻ phạt - Tài/Xỉu',   cardHandicap:'Thẻ phạt - Cược Chấp',
+      cornerTotal:'Phạt góc - Tài/Xỉu', cornerHandicap:'Phạt góc - Cược Chấp',
+    }[t.betTypeValue] || t.betTypeValue;
+
+    previewRows.innerHTML = [
+      ['Đội nhà',        t.homeTeam || '--'],
+      ['Đội khách',      t.awayTeam || '--'],
+      ['Loại cược',      betTypeLabel],
+      ['Hiệp',           t.period],
+      ['Lựa chọn',       `${pickLabel} ${t.line}`],
+      ['Tỷ lệ',          `${t.odds} (${t.oddsFormat})`],
+      ['Điểm cược',      t.stake ? `${Number(t.stake).toLocaleString('vi-VN')}` : '--'],
+      ['Tỷ số lúc đặt',  `${t.startHome}-${t.startAway}`],
+    ].map(([dt,dd])=>`<div class="ticket-row"><dt>${dt}</dt><dd>${dd}</dd></div>`).join('');
+
+    previewEl.classList.remove('hidden');
+    fillBtn.classList.remove('hidden');
+
+    if (t.warnings.length){
+      warningList.innerHTML = t.warnings.map(w=>`<li>${w}</li>`).join('');
+      warningEl.classList.remove('hidden');
+    } else {
+      warningEl.classList.add('hidden');
+    }
+  }
+
+  function fillForm(t){
+    if (!t.ok) return;
+
+    // Tên đội
+    if (t.homeTeam) homeTeamInput.value = t.homeTeam;
+    if (t.awayTeam) awayTeamInput.value = t.awayTeam;
+
+    // Loại cược
+    betTypeSelect.value = t.betTypeValue;
+    betTypeSelect.dispatchEvent(new Event('change'));
+
+    // Hiệp
+    if (handicapPeriodSelect) handicapPeriodSelect.value = t.period;
+    if (totalPeriodSelect)    totalPeriodSelect.value    = t.period;
+
+    // Tài/Xỉu pick + mốc
+    if (totalPickSelect)  totalPickSelect.value  = t.pick;
+    if (totalLineInput)   totalLineInput.value   = t.line;
+
+    // Tỷ lệ + loại
+    if (t.odds)       oddsInput.value       = t.odds;
+    if (t.oddsFormat) oddsFormatSelect.value = t.oddsFormat;
+
+    // Điểm cược
+    if (t.stake) stakeInput.value = t.stake;
+
+    // Tỷ số lúc đặt (live)
+    startHomeScoreInput.value = t.startHome;
+    startAwayScoreInput.value = t.startAway;
+
+    form.dispatchEvent(new Event('input'));
+    form.dispatchEvent(new Event('change'));
+  }
+
+  function resetForm(){
+    ticketInput.value = '';
+    previewEl.classList.add('hidden');
+    warningEl.classList.add('hidden');
+    fillBtn.classList.add('hidden');
+    lastTicket = null;
+    [homeTeamInput, awayTeamInput, stakeInput, oddsInput,
+     totalLineInput, handicapLineInput,
+     startHomeScoreInput, startAwayScoreInput,
+     homeScoreInput, awayScoreInput
+    ].forEach(el => { if (el) el.value = ''; });
+    betTypeSelect.value = betTypeSelect.options[0].value;
+    betTypeSelect.dispatchEvent(new Event('change'));
+    form.dispatchEvent(new Event('input'));
+  }
+
+  analyzeBtn.addEventListener('click', () => {
+    const raw = ticketInput.value.trim();
+    if (!raw) return;
+    lastTicket = parseSabaTicketSingle(raw);
+    renderPreview(lastTicket);
+  });
+
+  fillBtn.addEventListener('click', () => { if (lastTicket) fillForm(lastTicket); });
+  clearBtn.addEventListener('click', resetForm);
+})();
 (function(){
   const OFFSET = 3;
   const BORDER_RADIUS = 8;
