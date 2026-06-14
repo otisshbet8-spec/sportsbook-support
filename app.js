@@ -1303,7 +1303,8 @@ init();
       return;
     }
 
-    const pickLabel = t.pick === 'over' ? 'Tài' : 'Xỉu';
+    const pickLabel = t.pick === 'handicap' ? `Chấp ${t.line}`
+                    : t.pick === 'over' ? 'Tài' : 'Xỉu';
     const betTypeLabel = {
       footballTotal:'Bóng đá - Tài/Xỉu', footballHandicap:'Bóng đá - Cược Chấp',
       cardTotal:'Thẻ phạt - Tài/Xỉu',   cardHandicap:'Thẻ phạt - Cược Chấp',
@@ -1315,7 +1316,7 @@ init();
       ['Đội khách',      t.awayTeam || '--'],
       ['Loại cược',      betTypeLabel],
       ['Hiệp',           t.period],
-      ['Lựa chọn',       `${pickLabel} ${t.line}`],
+      ['Lựa chọn',       t.pick === 'handicap' ? pickLabel : `${pickLabel} ${t.line}`],
       ['Tỷ lệ',          `${t.odds} (${t.oddsFormat})`],
       ['Điểm cược',      t.stake ? `${Number(t.stake).toLocaleString('vi-VN')}` : '--'],
       ['Tỷ số lúc đặt',  `${t.startHome}-${t.startAway}`],
