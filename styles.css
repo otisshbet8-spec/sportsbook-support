@@ -1100,13 +1100,13 @@ textarea:focus {
   line-height: 1.6;
 }
 
-#clearFormBtn {
+#clearParlayBtn {
   background: var(--red);
   color: #ffffff;
   border-color: var(--red);
 }
 
-#clearFormBtn:hover {
+#clearParlayBtn:hover {
   background: #c94a4a;
 }
 
