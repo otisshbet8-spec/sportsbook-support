@@ -1170,6 +1170,7 @@ init();
 // ── Parser vé đơn SABA (Tab Tính Vé Cược) ──────────────
 (function(){
   const ticketInput = document.querySelector('#ticketRawInput');
+  const resultInput = document.querySelector('#ticketResultRawInput');
   const analyzeBtn  = document.querySelector('#analyzeTicketBtn');
   const fillBtn     = document.querySelector('#fillTicketBtn');
   const clearBtn    = document.querySelector('#clearFormBtn');
@@ -1187,6 +1188,28 @@ init();
 
   let lastTicket = null;
 
+  function _parseResultLine(line){
+    let cleaned = line.replace(/^\d{1,2}:\d{2}(?::\d{2})?\s*(AM|PM)\s*/i, '').trim();
+    const m = cleaned.match(/^(.+?)\s*[\t ]+(\d+)[\t ]+(\d+)\s*$/);
+    if (!m) return null;
+    return {
+      teamName: m[1].replace(/Tổng Số Thẻ Phạt/i, '').trim(),
+      halfScore: parseInt(m[2]),
+      fullScore: parseInt(m[3]),
+    };
+  }
+
+  function _parseResultText(rawText){
+    if (!rawText.trim()) return [];
+    return rawText.split('\n').map(l => l.trim()).filter(Boolean)
+      .map(l => _parseResultLine(l)).filter(Boolean);
+  }
+
+  function _normalizeName(s){
+    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/&/g, 'and').replace(/\s*\([^)]*\)\s*$/g, '').trim();
+  }
+  
   function parseSabaTicketSingle(rawText){
     const warnings = [];
     if (!rawText.includes('SABA') && !rawText.includes('Diamond'))
@@ -1273,6 +1296,7 @@ init();
       ['Tỷ lệ',          `${t.odds} (${t.oddsFormat})`],
       ['Điểm cược',      t.stake ? `${Number(t.stake).toLocaleString('vi-VN')}` : '--'],
       ['Tỷ số lúc đặt',  `${t.startHome}-${t.startAway}`],
+      ...(t.resultMatched ? [['Kết quả trận', `${t.homeScore} - ${t.awayScore}`]] : [['Kết quả trận', '-- chưa có --']]),
     ].map(([dt,dd])=>`<div class="ticket-row"><dt>${dt}</dt><dd>${dd}</dd></div>`).join('');
 
     previewEl.classList.remove('hidden');
@@ -1315,6 +1339,10 @@ init();
     // Tỷ số lúc đặt (live)
     startHomeScoreInput.value = t.startHome;
     startAwayScoreInput.value = t.startAway;
+    if (t.resultMatched){
+      homeScoreInput.value = t.homeScore;
+      awayScoreInput.value = t.awayScore;
+    }
 
     form.dispatchEvent(new Event('input'));
     form.dispatchEvent(new Event('change'));
@@ -1322,6 +1350,7 @@ init();
 
   function resetForm(){
     ticketInput.value = '';
+    if (resultInput) resultInput.value = '';
     previewEl.classList.add('hidden');
     warningEl.classList.add('hidden');
     fillBtn.classList.add('hidden');
@@ -1340,6 +1369,29 @@ init();
     const raw = ticketInput.value.trim();
     if (!raw) return;
     lastTicket = parseSabaTicketSingle(raw);
+
+    // Parse kết quả tỷ số nếu có
+    const resultRaw = resultInput ? resultInput.value.trim() : '';
+    if (resultRaw && lastTicket.ok){
+      const entries = _parseResultText(resultRaw);
+      if (entries.length >= 2){
+        const useHalf = lastTicket.period === 'Hiệp 1';
+        const homeEntry = entries.find(e =>
+          _normalizeName(e.teamName).includes(_normalizeName(lastTicket.homeTeam)) ||
+          _normalizeName(lastTicket.homeTeam).includes(_normalizeName(e.teamName))
+        );
+        const awayEntry = entries.find(e =>
+          _normalizeName(e.teamName).includes(_normalizeName(lastTicket.awayTeam)) ||
+          _normalizeName(lastTicket.awayTeam).includes(_normalizeName(e.teamName))
+        );
+        if (homeEntry && awayEntry){
+          lastTicket.homeScore = useHalf ? homeEntry.halfScore : homeEntry.fullScore;
+          lastTicket.awayScore = useHalf ? awayEntry.halfScore : awayEntry.fullScore;
+          lastTicket.resultMatched = true;
+        }
+      }
+    }
+
     renderPreview(lastTicket);
   });
 
