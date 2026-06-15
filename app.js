@@ -2019,15 +2019,28 @@ initLegs(2);
 function isSabaTicketParlay(text){ return text.includes('SABA') || text.includes('Diamond'); }
 
 function parseLegSelectionLine(line){
-  const m = line.match(/^(Tài|Xỉu)\s*([\d.]+)\s*@\s*([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/i);
-  if (!m) return null;
-  return {
-    pick: m[1].toLowerCase().includes('tài') ? 'over' : 'under',
-    line: parseFloat(m[2]),
-    odds: parseFloat(m[3]),
-    startHome: m[4] !== undefined ? parseInt(m[4]) : 0,
-    startAway: m[5] !== undefined ? parseInt(m[5]) : 0,
+  // Tài/Xỉu: "Tài 2.5 @ 1.98 [0-0]"
+  const mTotal = line.match(/^(Tài|Xỉu)\s*([\d.]+)\s*@\s*([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/i);
+  if (mTotal) return {
+    type: 'total',
+    pick: mTotal[1].toLowerCase().includes('tài') ? 'over' : 'under',
+    line: parseFloat(mTotal[2]),
+    odds: parseFloat(mTotal[3]),
+    startHome: mTotal[4] !== undefined ? parseInt(mTotal[4]) : 0,
+    startAway: mTotal[5] !== undefined ? parseInt(mTotal[5]) : 0,
   };
+  // Chấp: "Manchester United (V) -0.5 @ 1.84 [0-0]"
+  const SKIP = /^(Cược Chấp|Tài\/Xỉu|Thắng|Thua|Hòa|Chi tiết|Kết quả|Cá Cược Tổng Hợp)$/i;
+  const mHcp = line.match(/^(.+?)\s+(-?[\d.]+)\s*@\s*([\d.]+)\s*(?:\[(\d+)-(\d+)\])?\s*$/);
+  if (mHcp && !SKIP.test(line)) return {
+    type: 'handicap',
+    teamName: mHcp[1].trim(),
+    hcpValue: parseFloat(mHcp[2]),
+    odds: parseFloat(mHcp[3]),
+    startHome: mHcp[4] !== undefined ? parseInt(mHcp[4]) : 0,
+    startAway: mHcp[5] !== undefined ? parseInt(mHcp[5]) : 0,
+  };
+  return null;
 }
 
 function parseLegBetTypeLine(line){
@@ -2108,13 +2121,24 @@ function parseSabaParlayTicket(rawText){
           if (parseLegSelectionLine(lines[j])) break;
         }
 
+        let selectedTeam = null, hcpDirection = null;
+        if (sel.type === 'handicap'){
+          const normTeam = normalizeTeamName(sel.teamName);
+          const normHome = normalizeTeamName(matchInfo.homeTeam);
+          const normAway = normalizeTeamName(matchInfo.awayTeam);
+          if (normTeam===normHome||normHome.includes(normTeam)||normTeam.includes(normHome)) selectedTeam='home';
+          else if (normTeam===normAway||normAway.includes(normTeam)||normTeam.includes(normAway)) selectedTeam='away';
+          hcpDirection = sel.hcpValue < 0 ? 'give' : 'receive';
+        }
         legs.push({
           homeTeam: matchInfo.homeTeam,
           awayTeam: matchInfo.awayTeam,
-          betFamily: betTypeInfo.family,
+          betFamily: sel.type === 'handicap' ? 'handicap' : betTypeInfo.family,
           period: betTypeInfo.period,
-          pick: sel.pick,
-          line: sel.line,
+          pick: sel.type === 'total' ? sel.pick : null,
+          line: sel.type === 'total' ? sel.line : Math.abs(sel.hcpValue || 0),
+          selectedTeam,
+          hcpDirection,
           odds: sel.odds,
           startHome: sel.startHome,
           startAway: sel.startAway,
@@ -2228,8 +2252,6 @@ function renderParlayPreview(result){
     parlayPreviewEl.classList.remove('hidden');
     return;
   }
-
-  document.querySelector('#parlayPreviewTitle').textContent = `Kết quả phân tích — ${result.legs.length} nhánh`;
 
   parlayPreviewGridEl.innerHTML = result.legs.map((leg, idx) => {
     const pickLabel = leg.pick === 'over' ? 'Tài' : 'Xỉu';
