@@ -1293,7 +1293,21 @@ init();
       if (!isNaN(s) && s > 0) stake = String(s);
     }
 
-    return { ok:true, pick, line, startHome, startAway, betTypeValue, period, homeTeam, awayTeam, odds, oddsFormat, stake, warnings };
+    // Xác định khách đặt đội nào và chiều chấp từ dòng 0
+    let selectedTeam = null, handicapDirection = null;
+    if (isHcp && homeTeam && awayTeam){
+      const rawLine0Name = lines[0].replace(/\s+(-?[\d.]+)\s*(?:\[.*\])?\s*$/, '').trim();
+      const normLine0 = _normalizeName(rawLine0Name);
+      const normHome  = _normalizeName(homeTeam);
+      const normAway  = _normalizeName(awayTeam);
+      if (normLine0 === normHome || normHome.includes(normLine0) || normLine0.includes(normHome))
+        selectedTeam = 'home';
+      else if (normLine0 === normAway || normAway.includes(normLine0) || normLine0.includes(normAway))
+        selectedTeam = 'away';
+      handicapDirection = parseFloat(selHcp[1]) < 0 ? 'give' : 'receive';
+    }
+
+    return { ok:true, pick, line, startHome, startAway, betTypeValue, period, homeTeam, awayTeam, odds, oddsFormat, stake, selectedTeam, handicapDirection, warnings };
   }
 
   function renderPreview(t){
@@ -1319,6 +1333,7 @@ init();
       ['Loại cược',      betTypeLabel],
       ['Hiệp',           t.period],
       ['Lựa chọn',       t.pick === 'handicap' ? pickLabel : `${pickLabel} ${t.line}`],
+      ...(t.pick === 'handicap' ? [['Khách đặt', t.selectedTeam === 'home' ? (t.homeTeam || 'Đội nhà') : t.selectedTeam === 'away' ? (t.awayTeam || 'Đội khách') : '--']] : []),
       ['Tỷ lệ',          `${t.odds} (${t.oddsFormat})`],
       ['Điểm cược',      t.stake ? `${Number(t.stake).toLocaleString('vi-VN')}` : '--'],
       ['Tỷ số lúc đặt',  `${t.startHome}-${t.startAway}`],
@@ -1358,6 +1373,8 @@ init();
       if (totalLineInput)  totalLineInput.value  = t.line;
     } else {
       if (handicapLineInput) handicapLineInput.value = t.line;
+      if (t.selectedTeam    && selectedTeamSelect)       selectedTeamSelect.value       = t.selectedTeam;
+      if (t.handicapDirection && handicapDirectionSelect) handicapDirectionSelect.value  = t.handicapDirection;
     }
 
     // Tỷ lệ + loại
