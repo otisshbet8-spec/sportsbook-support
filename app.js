@@ -2225,8 +2225,8 @@ function applyResultsToLegs(legs, entries){
 
 // ── Map betFamily -> BET_TYPES value của Kèo Xiên ──
 const PARLAY_BET_TYPE_MAP = {
-  handicap: 'cardHcp',
-  total: 'cardTotal',
+  handicap: 'handicap',
+  total: 'total',
 };
 
 // ── UI cho parser xiên ───────────────────────────
@@ -2240,7 +2240,7 @@ const parlayPreviewGridEl = document.querySelector('#parlayPreviewGrid');
 const parlayWarningEl     = document.querySelector('#parlayWarning');
 const parlayWarningListEl = document.querySelector('#parlayWarningList');
 
-const parlayFamilyLabel = { handicap:'Thẻ phạt - Chấp', total:'Thẻ phạt - Tài/Xỉu', unknown:'Không xác định' };
+const parlayFamilyLabel = { handicap:'Cược chấp', total:'Tài/Xỉu', unknown:'Không xác định' };
 
 let lastParlayResult = null;
 
@@ -2254,7 +2254,9 @@ function renderParlayPreview(result){
   }
 
   parlayPreviewGridEl.innerHTML = result.legs.map((leg, idx) => {
-    const pickLabel = leg.pick === 'over' ? 'Tài' : 'Xỉu';
+    const pickLabel = leg.betFamily === 'handicap'
+      ? `Chấp ${numberFormatter.format(leg.line)}`
+      : leg.pick === 'over' ? 'Tài' : 'Xỉu';
     const resultLine = leg.resultMatched
       ? `<span class="leg-preview-result-ok"><strong>&#10003;</strong> Kết quả: ${leg.homeScore}-${leg.awayScore}</span>`
       : `<span class="leg-preview-result-missing">Chưa có kết quả — tự nhập tỷ số</span>`;
@@ -2265,7 +2267,7 @@ function renderParlayPreview(result){
         <p class="leg-preview-match">${leg.homeTeam} vs ${leg.awayTeam}</p>
         <div class="leg-preview-detail">
           <span>${parlayFamilyLabel[leg.betFamily] || '--'}</span>
-          <span>${leg.period} · ${pickLabel} ${numberFormatter.format(leg.line)} @${numberFormatter.format(leg.odds)}</span>
+          <span>${leg.period} · ${leg.betFamily === 'handicap' ? pickLabel : `${pickLabel} ${numberFormatter.format(leg.line)}`} @${numberFormatter.format(leg.odds)}</span>
           <span>Tỷ số lúc đặt: ${leg.startHome}-${leg.startAway}</span>
           ${resultLine}
         </div>
@@ -2319,7 +2321,16 @@ function fillParlayFromResult(result){
     }
 
     card.querySelector('.leg-period').value = leg.period;
-    card.querySelector('.leg-side').value = leg.pick === 'over' ? 'over' : 'under';
+    if (leg.betFamily === 'handicap'){
+      // leg-side = đội CHẤP (give), leg-pick = đội khách ĐẶT
+      const giveSide = leg.hcpDirection === 'give'
+        ? leg.selectedTeam
+        : (leg.selectedTeam === 'home' ? 'away' : 'home');
+      card.querySelector('.leg-side').value = giveSide || 'home';
+      card.querySelector('.leg-pick').value = leg.selectedTeam || 'home';
+    } else {
+      card.querySelector('.leg-side').value = leg.pick === 'over' ? 'over' : 'under';
+    }
     card.querySelector('.leg-line').value = leg.line;
     card.querySelector('.leg-odds').value = leg.odds;
     card.querySelector('.leg-start-home').value = leg.startHome;
