@@ -1163,7 +1163,12 @@ copyButton.addEventListener("click", copyScript);
 ticketStatusSelect.addEventListener("change", calculateSettlement);
 pendingReasonSelect.addEventListener("change", calculateSettlement);
 tabButtons.forEach((button) => {
-  button.addEventListener("click", () => switchTab(button.dataset.tab));
+  button.addEventListener("click", () => {
+    switchTab(button.dataset.tab);
+    if(button.dataset.tab === 'parlay'){
+      setTimeout(()=> window.dispatchEvent(new Event('resize')), 50);
+    }
+  });
 });
 
 init();
