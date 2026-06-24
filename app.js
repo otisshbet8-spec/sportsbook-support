@@ -1816,10 +1816,10 @@ function createLeg(idx){
 
 updateLegUI(d);
   if(window.initComet){
-    requestAnimationFrame(()=>{
+    setTimeout(()=>{
       d.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select')
         .forEach(el=>window.initComet(el));
-    });
+    }, 80);
   }
   return d;
 }
